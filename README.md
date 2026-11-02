@@ -71,7 +71,6 @@ Validation (2016–2019) complete for all baselines and Ridge. **Test period not
   there, see `results/ridge_alphas.json`); the grid was not extended.
 - OISST is an analysis (interpolated from satellites and in situ data), not raw observations; its character changes over time.
 - 1,194 days per region come from a second source (PSL), validated but with a v2/v2.1 label change at 2016.
-- Figure 1 (`fig1_regions.png`) still shows the preliminary (unsmoothed day-of-year) anomaly std; the scores and the final region stats use the harmonics3 climatology.
 - Only SST is used; no other predictors, no probabilistic scores, no uncertainty intervals yet.
 
 ## How this was built

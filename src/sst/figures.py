@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
+from sst.climatology import anomaly, build_climatology
 from sst.download import ROOT, load_config
 
 RESULTS = ROOT / "results"
@@ -65,21 +66,32 @@ def region_stats(anom_train):
 
 
 def main():
+    """Figure 1 with panel (b) from the FINAL training climatology (cfg smoothing, training years only).
+
+    region_stats.json layout: {"preliminary": <kept from the existing file, or computed from the unsmoothed
+    day-of-year mean if absent>, "final": <computed here from the final climatology>}."""
     cfg = load_config()
     train = cfg["split"]["train"]
     names = list(cfg["regions"])
+    path = RESULTS / "region_stats.json"
+    old = json.loads(path.read_text()) if path.exists() else {}
+    prelim = old.get("preliminary") or (old if "kuroshio" in old else None)
+    compute_prelim = prelim is None
+    if compute_prelim:
+        prelim = {"anomaly_definition": "SST minus training-years (%s to %s) unsmoothed day-of-year mean; preliminary" % tuple(train)}
+    final = {"anomaly_definition": "SST minus FINAL training climatology (%s, years %s to %s); cos(lat) weights"
+             % (cfg["climatology"]["smoothing"], *train)}
     fig, axes = plt.subplots(len(names), 2, figsize=(12, 5 * len(names)))
-    stats = {"anomaly_definition": "SST minus training-years (%s to %s) day-of-year mean; preliminary" % tuple(train)}
     for i, region in enumerate(names):
-        sst = xr.open_dataset(ROOT / "data" / "processed" / f"{region}.nc")["sst"]
+        sst = xr.open_dataset(ROOT / "data" / "processed" / f"{region}.nc")["sst"].sel(time=slice(None, train[1])).load()
         b = cfg["regions"][region]
         box = f"{b['lat_min']}–{b['lat_max']}°N, {b['lon_min']}–{b['lon_max']}°E"
         tr = sst.sel(time=slice(*train))
-        anom_tr = preliminary_anomaly(sst, train).sel(time=slice(*train))
+        anom_tr = anomaly(tr, build_climatology(sst, cfg))
         panels = [
             (tr.mean("time"), "viridis", "Mean SST (°C)", "(a) Mean SST, training years"),
             (anom_tr.std("time"), "magma", "Std of anomaly (°C)",
-             "(b) Std of daily anomaly\n(preliminary anomaly; final climatology on day 2)"),
+             f"(b) Std of daily anomaly\n(anomaly vs final {cfg['climatology']['smoothing']} climatology, training years)"),
         ]
         for ax, (field, cmap, label, title) in zip(axes[i], panels):
             m = ax.pcolormesh(field.longitude, field.latitude, field, cmap=cmap, shading="auto")
@@ -87,12 +99,14 @@ def main():
             ax.set_xlabel("Longitude (°E)")
             ax.set_ylabel("Latitude (°N)")
             ax.set_title(f"{region}: {title}\n{box}", fontsize=9)
-        stats[region] = region_stats(anom_tr)
+        final[region] = region_stats(anom_tr)
+        if compute_prelim:
+            prelim[region] = region_stats(preliminary_anomaly(sst, train).sel(time=slice(*train)))
     fig.tight_layout()
     (RESULTS / "figures").mkdir(parents=True, exist_ok=True)
     fig.savefig(RESULTS / "figures" / "fig1_regions.png", dpi=150)
-    (RESULTS / "region_stats.json").write_text(json.dumps(stats, indent=2))
-    print(json.dumps(stats, indent=2))
+    path.write_text(json.dumps({"preliminary": prelim, "final": final}, indent=2))
+    print(json.dumps(final, indent=2))
 
 
 if __name__ == "__main__":
