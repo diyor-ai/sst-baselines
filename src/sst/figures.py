@@ -41,10 +41,25 @@ def lag1_autocorr(x):
 
 
 def region_stats(anom_train):
-    series = anom_train.mean(["latitude", "longitude"], skipna=True).values
+    """Training-period statistics of the (preliminary) anomaly, cos(lat)-weighted where spatial.
+
+    (a) point_*: per-grid-point std / lag-1 autocorrelation, then cos(lat)-weighted mean over points.
+    (b) area_mean_*: std / lag-1 autocorrelation of the cos(lat)-weighted area-averaged anomaly series.
+    """
+    w = np.cos(np.deg2rad(anom_train["latitude"].values))
+    w = w / w.mean()
+    x = anom_train.values  # (time, lat, lon)
+    wgrid = np.broadcast_to(w[None, :, None], x.shape)
+    series = (x * wgrid).sum(axis=(1, 2)) / wgrid.sum(axis=(1, 2))
+    std_pt = np.nanstd(x, axis=0, ddof=1)
+    xc = x - np.nanmean(x, axis=0)
+    r1_pt = np.nansum(xc[:-1] * xc[1:], axis=0) / np.nansum(xc * xc, axis=0)
+    wpt = np.broadcast_to(w[:, None], std_pt.shape)
     return {
-        "region_mean_anomaly_std": float(np.std(series, ddof=1)),
-        "region_mean_anomaly_lag1_autocorr": lag1_autocorr(series),
+        "point_anomaly_std_cosw_mean": float((std_pt * wpt).sum() / wpt.sum()),
+        "point_lag1_autocorr_cosw_mean": float((r1_pt * wpt).sum() / wpt.sum()),
+        "area_mean_anomaly_std": float(np.std(series, ddof=1)),
+        "area_mean_lag1_autocorr": lag1_autocorr(series),
         "n_days": int(series.size),
     }
 

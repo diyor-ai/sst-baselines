@@ -45,8 +45,14 @@ def mae(f, o):
     return _wmean(np.abs(f.values - o.values), w)
 
 
-def acc(f, o, clim_t):
-    """Anomaly correlation: per date, weighted spatial correlation of (f - clim) and (o - clim)
+def _centre(a):
+    """Subtract the time mean at each grid point (NaN-safe, no warnings on all-NaN points)."""
+    with np.errstate(all="ignore"):
+        return a - np.nansum(a, axis=0) / np.sum(~np.isnan(a), axis=0)
+
+
+def acc_spatial(f, o, clim_t):
+    """Secondary ACC: per date, weighted spatial correlation of (f - clim) and (o - clim)
     (not re-centred), then averaged over dates. Dates with zero variance are ignored."""
     w = _w3(f, lat_weights(f["latitude"]))
     fa, oa = f.values - clim_t.values, o.values - clim_t.values
@@ -60,13 +66,30 @@ def acc(f, o, clim_t):
     return float(np.mean(vals)) if vals else float("nan")
 
 
+def acc(f, o, clim_t):
+    """PRIMARY ACC (temporal): at each grid point the centred correlation over time between the
+    forecast anomaly and the observed anomaly (anomaly = value - climatology), then the
+    cos(lat)-weighted mean over grid points. Points with zero variance give NaN and are ignored;
+    if every point is NaN the result is NaN."""
+    fa, oa = f.values - clim_t.values, o.values - clim_t.values
+    fa, oa = _centre(fa), _centre(oa)
+    num = np.nansum(fa * oa, axis=0)
+    den = np.sqrt(np.nansum(fa * fa, axis=0) * np.nansum(oa * oa, axis=0))
+    r = np.full(num.shape, np.nan)
+    np.divide(num, den, out=r, where=den > 1e-12)
+    w = np.broadcast_to(lat_weights(f["latitude"])[:, None], r.shape)
+    m = ~np.isnan(r)
+    return float((r[m] * w[m]).sum() / w[m].sum()) if m.any() else float("nan")
+
+
 def skill_score(model, reference):
     """1 - model/reference for an error score (RMSE or MAE): 0 = no better than reference, 1 = perfect."""
     return 1.0 - model / reference
 
 
 def scores(f, o, clim_t):
-    return {"rmse": rmse(f, o), "mae": mae(f, o), "acc": acc(f, o, clim_t), "n_days": int(f.sizes["time"])}
+    return {"rmse": rmse(f, o), "mae": mae(f, o), "acc": acc(f, o, clim_t),
+            "acc_spatial": acc_spatial(f, o, clim_t), "n_days": int(f.sizes["time"])}
 
 
 def scores_by(f, o, clim_t, labels):

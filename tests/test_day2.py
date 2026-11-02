@@ -162,3 +162,51 @@ def test_missing_days_skipped_and_counted():
 def test_season_labels():
     assert list(season_labels(["2000-12-15", "2001-01-10", "2001-04-01", "2001-07-01", "2001-10-31"])) == \
         ["DJF", "DJF", "MAM", "JJA", "SON"]
+
+
+def test_temporal_acc_perfect_and_zero_anomaly():
+    import warnings
+    from sst.metrics import acc_spatial
+    o = synth("2000-01-01", "2000-03-31", seed=6)
+    c = o * 0 + 20.0
+    assert acc(o, o, c) == pytest.approx(1.0)
+    assert acc_spatial(o, o, c) == pytest.approx(1.0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")           # any RuntimeWarning would fail the test
+        assert np.isnan(acc(c, o, c))            # forecast == climatology -> zero anomaly -> NaN
+        assert np.isnan(acc_spatial(c, o, c))
+
+
+def test_temporal_acc_is_centred_and_scale_free():
+    o = synth("2000-01-01", "2000-03-31", seed=8)
+    c = o * 0 + 20.0
+    f = 20.0 + 3.0 * (o - 20.0) + 5.0            # scaled and shifted anomalies: correlation stays 1
+    assert acc(f, o, c) == pytest.approx(1.0)
+    assert acc(20.0 - (o - 20.0), o, c) == pytest.approx(-1.0)
+
+
+def test_lag_corr_uses_only_pairs_inside_training_period():
+    # one grid point, climatology 0 so anomaly == value; train = days 1..6, h = 2
+    vals = [1.0, 2.0, 0.0, -1.0, 3.0, 1.0, 100.0, -100.0]   # last two days are outside training
+    sst = one_cell(vals)
+    clim = xr.DataArray(np.zeros((365, 1, 1)), dims=("doy", "latitude", "longitude"),
+                        coords={"latitude": [0.0], "longitude": [0.0]})
+    train = ["2000-01-01", "2000-01-06"]
+    r = lag_corr(sst, clim, train, 2).values[0, 0]
+    x, y = np.array(vals[:4]), np.array(vals[2:6])           # pairs (t, t+2), both t and t+2 in 1..6
+    assert r == pytest.approx((x * y).sum() / np.sqrt((x * x).sum() * (y * y).sum()))
+    changed = sst.copy(deep=True)
+    changed.loc[dict(time=slice("2000-01-07", None))] = -5.0  # data after the training end
+    assert lag_corr(changed, clim, train, 2).values[0, 0] == r
+
+
+def test_region_stats_weights_and_names():
+    from sst.figures import region_stats
+    t = pd.date_range("2000-01-01", periods=50)
+    rng = np.random.default_rng(1)
+    a = xr.DataArray(rng.normal(0, 1, (50, 2, 3)), dims=("time", "latitude", "longitude"),
+                     coords={"time": t, "latitude": [0.0, 60.0], "longitude": [0.0, 1.0, 2.0]})
+    out = region_stats(a)
+    assert set(out) == {"point_anomaly_std_cosw_mean", "point_lag1_autocorr_cosw_mean",
+                        "area_mean_anomaly_std", "area_mean_lag1_autocorr", "n_days"}
+    assert out["area_mean_anomaly_std"] < out["point_anomaly_std_cosw_mean"]  # averaging reduces noise

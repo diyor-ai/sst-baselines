@@ -18,5 +18,5 @@ split:
   test:  ["2020-01-01", "2025-12-31"]
 leads_days: [1, 7, 30]
 seed: 0
-climatology: {years: "train", smoothing: "TBD_day2", feb29: "use_feb28"}
+climatology: {years: "train", smoothing: "harmonics3", feb29: "use_feb28"}
 ocn_years: 10
