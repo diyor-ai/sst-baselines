@@ -27,3 +27,11 @@ ridge:
   features: "anomaly lags 0..6 + mean anomaly t-29..t"
   fit_years: "train"
   alphas: {kuroshio: {1: 0.0031622776601683794, 7: 0.001, 30: 0.001}, subtropical: {1: 0.01, 7: 0.001, 30: 0.001}}
+# ---- Day 4 freeze: remaining decisions written down explicitly (values unchanged since validation) ----
+baselines: [persistence, climatology, anomaly_persistence, damped_persistence, ocn, ridge]
+damped_persistence: {r_h: "per grid point, lag-h correlation of training-year anomalies"}
+skill: {metric: rmse, formula: "1 - error_model/error_reference", references: [climatology, anomaly_persistence],
+        primary_reference: anomaly_persistence}
+metrics: {primary_acc: temporal, secondary_acc: acc_spatial, weights: "cos(latitude)", groupings: [season, year]}
+missing_pairs: "skipped and counted; all methods must be scored on the same pairs"
+test_policy: "test period (split.test) evaluated exactly once, after git tag pre-test-freeze; no method/parameter change afterwards"

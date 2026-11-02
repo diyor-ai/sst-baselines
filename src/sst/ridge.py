@@ -105,15 +105,20 @@ def _pairs(sst_times, start, end, h):
     return issue[ok], target[ok], counts
 
 
-def ridge_lead(sst, clim, cfg, h, chunk=200):
-    """Everything for one region and lead. `sst` must already be cut at the validation end.
+def ridge_lead(sst, clim, cfg, h, chunk=200, period="val", alpha=None):
+    """Everything for one region and lead. For period="val" `sst` must already be cut at the validation end.
+
+    period="test": the model is still fitted on TRAINING years only and uses the given `alpha` (chosen earlier
+    on validation, stored in config.yaml); no alpha is chosen and nothing from the test targets enters the fit.
 
     1. fit on training years only (targets <= train end; features read only days <= issue),
     2. predict the validation targets for every alpha and pick the alpha with the lowest
        area-mean validation RMSE (one alpha for the whole region),
     3. return the forecast SST for that alpha: climatology(t+h) + predicted anomaly.
     """
-    train, val = cfg["split"]["train"], cfg["split"]["val"]
+    train, val = cfg["split"]["train"], cfg["split"][period]
+    if (period == "test") != (alpha is not None):
+        raise ValueError("alpha must be given for period='test' and must not be given for period='val'")
     sst_tr = sst.sel(time=slice(*train))
     anom_full = anomaly(sst, clim).reindex(time=pd.date_range(sst.time.min().values, sst.time.max().values))
     anom_tr = anomaly(sst_tr, clim).reindex(time=pd.date_range(sst_tr.time.min().values, sst_tr.time.max().values))
@@ -127,7 +132,7 @@ def ridge_lead(sst, clim, cfg, h, chunk=200):
     y_tr = anom_tr.sel(time=t_tr).values.reshape(len(t_tr), -1)
     obs_va = sst.sel(time=t_va)
     clim_va = clim_at(clim, t_va)
-    alphas = np.asarray(ALPHA_GRID)
+    alphas = np.asarray(ALPHA_GRID) if alpha is None else np.asarray([alpha], dtype=float)
     P = a_full.shape[1]
     pred = np.empty((len(alphas), len(t_va), P))
     for p0 in range(0, P, chunk):
@@ -146,6 +151,10 @@ def ridge_lead(sst, clim, cfg, h, chunk=200):
                             coords={"time": pd.DatetimeIndex(t_va), "latitude": sst["latitude"],
                                     "longitude": sst["longitude"]})
 
+    if alpha is not None:  # fixed alpha (test): no selection, no validation curve
+        info = {"alpha": float(alpha), "fit_years": train, "train_pairs": c_tr, "test_pairs": c_va,
+                "n_train_rows": int(len(i_tr))}
+        return as_sst(pred[0]), (i_va, t_va), info
     curve = [rmse(as_sst(pred[k]), obs_va) for k in range(len(alphas))]
     best = int(np.argmin(curve))
     info = {"alphas": [float(x) for x in alphas], "val_rmse": [float(x) for x in curve],

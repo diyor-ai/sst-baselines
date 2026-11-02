@@ -19,9 +19,11 @@ METHODS = ["persistence", "climatology", "anomaly_persistence", "damped_persiste
 REFS = {"climatology": "climatology", "anomaly_persistence": "anomaly_persistence"}
 
 
-def run_region(sst, cfg, clim, region):
+def run_region(sst, cfg, clim, region, period="val", alphas=None, season_year=False):
+    """Score all methods for one region. period="val" selects the Ridge alpha on validation; period="test"
+    uses the fixed `alphas` ({lead: alpha}) from config.yaml. season_year adds scores per (season, calendar year)."""
     train = cfg["split"]["train"]
-    v0, v1 = cfg["split"]["val"]
+    v0, v1 = cfg["split"][period]
     out, bias, ridge_info = {}, {}, {}
     for h in cfg["leads_days"]:
         issue, target, counts = valid_pairs(sst.time.values, v0, v1, h)
@@ -33,14 +35,18 @@ def run_region(sst, cfg, clim, region):
             "damped_persistence": damped_persistence(sst, clim, issue, target, r),
             "ocn": ocn(sst, issue, target, cfg["ocn_years"]),
         }
-        f_ridge, (i_r, t_r), info = ridge_lead(sst, clim, cfg, h)
-        assert (t_r == target).all() and (i_r == issue).all(), "Ridge must be scored on the same pairs"
+        f_ridge, (i_r, t_r), info = ridge_lead(sst, clim, cfg, h, period=period, alpha=None if alphas is None else alphas[h])
+        assert len(t_r) == len(target) and (t_r == target).all() and (i_r == issue).all(), "Ridge must be scored on the same pairs"
         fcs["ridge"] = f_ridge
         ridge_info[str(h)] = info
         obs, ct = sst.sel(time=target), clim_at(clim, target)
         seasons, years = season_labels(target), year_labels(target)
         res = {m: {"overall": scores(f, obs, ct), "by_season": scores_by(f, obs, ct, seasons),
                    "by_year": scores_by(f, obs, ct, years)} for m, f in fcs.items()}
+        if season_year:
+            sy = np.array([f"{a}|{b}" for a, b in zip(seasons, years)])
+            for m, f in fcs.items():
+                res[m]["by_season_year"] = scores_by(f, obs, ct, sy)
         skill = {}
         for m in METHODS:
             skill[m] = {}
@@ -50,11 +56,15 @@ def run_region(sst, cfg, clim, region):
                 for grp in ("by_season", "by_year"):
                     skill[m][f"rmse_skill_vs_{ref}_{grp}"] = {
                         g: skill_score(res[m][grp][g]["rmse"], res[ref][grp][g]["rmse"]) for g in res[m][grp]}
+                if season_year:
+                    skill[m][f"rmse_skill_vs_{ref}_by_season_year"] = {
+                        g: skill_score(res[m]["by_season_year"][g]["rmse"], res[ref]["by_season_year"][g]["rmse"])
+                        for g in res[m]["by_season_year"]}
         out[str(h)] = {"pairs": counts, "methods": res, "skill": skill}
         bias[str(h)] = {m: bias_decomposition(f, obs) for m, f in fcs.items()}
         for m in METHODS:  # consistency: MSE from the bias split == RMSE^2 from the metric code
             assert abs(bias[str(h)][m]["mse"] - res[m]["overall"]["rmse"] ** 2) < 1e-9
-        print(f"[{region} h={h}] ridge alpha={info['alpha']:g}  " + "  ".join(
+        print(f"[{region} {period} h={h}] ridge alpha={info['alpha']:g}  " + "  ".join(
             f"{m}: {res[m]['overall']['rmse']:.3f}" for m in METHODS), flush=True)
     return out, bias, ridge_info
 
