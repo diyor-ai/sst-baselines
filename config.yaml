@@ -1,0 +1,22 @@
+dataset:
+  # PRIMARY source: ERDDAP OISST v2.1 FINAL, 0.25 deg, daily; longitude 0-360; dims time,zlev,latitude,longitude
+  erddap_base: "https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg"
+  dataset_id: "ncdcOisst21Agg"
+  variable: "sst"
+  # GAP-FILL source (only for days the ERDDAP aggregation lacks: 1,194 days in 1982-2025, mostly 1992-1998).
+  # NOAA PSL OPeNDAP, labelled OISST v2 (1982-2015) / v2.1 (2016+). Used only after validation
+  # (double fetch + range + day-to-day check + exact match with ERDDAP on overlapping days).
+  psl_base: "https://psl.noaa.gov/thredds/dodsC/Datasets/noaa.oisst.v2.highres"
+  psl_file_pattern: "sst.day.mean.{year}.nc"   # dims time,lat,lon; longitude 0-360
+regions:
+  kuroshio:      {lat_min: 30.125, lat_max: 39.875, lon_min: 145.125, lon_max: 154.875}   # high variability
+  subtropical:   {lat_min: 15.125, lat_max: 24.875, lon_min: 150.125, lon_max: 159.875}   # low variability
+period: {start: "1982-01-01", end: "2025-12-31"}
+split:
+  train: ["1982-01-01", "2015-12-31"]
+  val:   ["2016-01-01", "2019-12-31"]
+  test:  ["2020-01-01", "2025-12-31"]
+leads_days: [1, 7, 30]
+seed: 0
+climatology: {years: "train", smoothing: "TBD_day2", feb29: "use_feb28"}
+ocn_years: 10
