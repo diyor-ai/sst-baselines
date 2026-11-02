@@ -42,13 +42,15 @@ def fig2(src="val_all.json", out_name="fig2_val_leads.png",
             for h, v in zip(leads, sk):
                 if v < lo:
                     off[h].append((m, v))
-        for h, items in off.items():  # off-scale values: arrow at the bottom edge + labelled value
-            for j, (m, v) in enumerate(items):
-                c, _, lab = STYLE[m]
-                y = lo + 0.05 + 0.075 * j
-                axes[i, 1].plot([h], [y], marker="v", color=c, ms=7, ls="none", clip_on=False)
-                axes[i, 1].annotate(f"{lab}: {v:+.2f} (off scale)", (h, y), xytext=(7, 0), textcoords="offset points",
-                                    fontsize=7, color=c, va="center", ha="left" if h < leads[-1] else "right")
+        lines = []
+        for h, items in off.items():  # off-scale values: arrows at the bottom edge + one text box with the values
+            for m, v in items:
+                axes[i, 1].plot([h], [lo + 0.04], marker="v", color=STYLE[m][0], ms=7, ls="none", clip_on=False, zorder=6)
+            if items:
+                lines.append(f"lead {h} d: " + ", ".join(f"{STYLE[m][2]} {v:+.2f}" for m, v in items))
+        if lines:
+            axes[i, 1].text(0.02, 0.03, "off scale (▼):\n" + "\n".join(lines), transform=axes[i, 1].transAxes,
+                            fontsize=7, va="bottom", ha="left", zorder=3, bbox=dict(fc="white", ec="0.7", lw=0.5))
         axes[i, 1].set_ylim(lo, hi)
         axes[i, 1].axhline(0, color="k", lw=0.6, ls=":")
         axes[i, 0].set_ylabel("RMSE (°C)")
@@ -99,5 +101,56 @@ def figS1():
     return out
 
 
+def fig3(src="test_all.json", out_name="fig3_test_seasons.png", leads=(7, 30)):
+    """Skill vs anomaly persistence by season. Large marker + bar = mean ± std over the calendar years,
+    small dots = the individual years (each dot: that season in that year, 'DJF' = Jan, Feb, Dec of the year)."""
+    d = json.loads((RES / src).read_text())
+    regions, seasons = list(d["regions"]), ["DJF", "MAM", "JJA", "SON"]
+    ms = [m for m in d["methods"] if m != "anomaly_persistence"]  # the reference itself is 0 by definition
+    fig, axes = plt.subplots(len(regions), len(leads), figsize=(6 * len(leads), 4.3 * len(regions)), squeeze=False)
+    off = np.linspace(-0.3, 0.3, len(ms))
+    for i, reg in enumerate(regions):
+        for j, h in enumerate(leads):
+            ax = axes[i, j]
+            sk = d["regions"][reg][str(h)]["skill"]
+            for k, m in enumerate(ms):
+                c, mk, lab = STYLE[m]
+                vals = sk[m]["rmse_skill_vs_anomaly_persistence_by_season_year"]
+                mean, sd = [], []
+                for si, se in enumerate(seasons):
+                    v = np.array([x for g, x in vals.items() if g.startswith(se + "|")])
+                    mean.append(v.mean()); sd.append(v.std(ddof=1))
+                    ax.plot(np.full(len(v), si + off[k]), v, ls="none", marker=".", ms=4, color=c, alpha=0.45)
+                ax.errorbar(np.arange(4) + off[k], mean, yerr=sd, ls="none", marker=mk, ms=7, color=c, capsize=2,
+                            label=lab, lw=1.2)
+            ax.axhline(0, color="k", lw=0.6, ls=":")
+            ax.set_xticks(range(4), seasons)
+            ax.set_ylabel("Skill vs anomaly persistence (unitless)")
+            ax.set_xlabel("Season of the target date")
+            ax.set_title(f"{reg}, lead {h} days", fontsize=10)
+            ax.grid(alpha=0.3, axis="y")
+    axes[0, 0].legend(fontsize=7, ncol=2)
+    p0, p1 = d["period"]["evaluated"]
+    fig.text(0.01, 0.005, f"test {p0[:4]}–{p1[:4]}: marker = mean ± std over the {p1[:4] and int(p1[:4]) - int(p0[:4]) + 1} years, "
+             "dots = individual years; values below 0 are worse than anomaly persistence", fontsize=8)
+    fig.tight_layout(rect=(0, 0.02, 1, 1))
+    out = RES / "figures" / out_name
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out
+
+
+def test_figs():
+    d = json.loads((RES / "test_all.json").read_text())
+    n = d["regions"][next(iter(d["regions"]))]["1"]["pairs"]["used"]
+    p0, p1 = d["period"]["evaluated"]
+    return fig2("test_all.json", "fig2_test_leads.png", f"test {p0[:4]}–{p1[:4]} ({n} days per lead); all models fitted on "
+                "1982–2015 only; alphas chosen on validation"), fig3()
+
+
 if __name__ == "__main__":
-    print(fig2(), figS1(), sep="\n")
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "test":
+        print(*test_figs(), sep="\n")
+    else:
+        print(fig2(), figS1(), sep="\n")
