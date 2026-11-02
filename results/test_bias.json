@@ -1,0 +1,318 @@
+{
+ "period": {
+  "train": [
+   "1982-01-01",
+   "2015-12-31"
+  ],
+  "evaluated": [
+   "2020-01-01",
+   "2025-12-31"
+  ]
+ },
+ "regions": {
+  "kuroshio": {
+   "1": {
+    "persistence": {
+     "bias": 0.0001772274986624581,
+     "mse": 0.07161896955794865,
+     "bias_sq": 3.1409586282151587e-08,
+     "variance_part": 0.07161893814836237,
+     "bias_sq_pct_of_mse": 4.385651800915304e-05,
+     "variance_part_pct_of_mse": 99.999956143482
+    },
+    "climatology": {
+     "bias": -0.8267338069531529,
+     "mse": 2.5309777622658474,
+     "bias_sq": 0.6834887875592531,
+     "variance_part": 1.8474889747065943,
+     "bias_sq_pct_of_mse": 27.004930574631466,
+     "variance_part_pct_of_mse": 72.99506942536853
+    },
+    "anomaly_persistence": {
+     "bias": 0.0001772274986624556,
+     "mse": 0.06640710561188781,
+     "bias_sq": 3.1409586282150706e-08,
+     "variance_part": 0.06640707420230153,
+     "bias_sq_pct_of_mse": 4.729853227713623e-05,
+     "variance_part_pct_of_mse": 99.99995270146772
+    },
+    "damped_persistence": {
+     "bias": -0.03876862975415798,
+     "mse": 0.06867492706581746,
+     "bias_sq": 0.0015030066530149833,
+     "variance_part": 0.06717192041280248,
+     "bias_sq_pct_of_mse": 2.1885813603770043,
+     "variance_part_pct_of_mse": 97.811418639623
+    },
+    "ocn": {
+     "bias": -0.4559604989423027,
+     "mse": 1.9322217200626997,
+     "bias_sq": 0.20789997659571366,
+     "variance_part": 1.724321743466986,
+     "bias_sq_pct_of_mse": 10.759633557424632,
+     "variance_part_pct_of_mse": 89.24036644257536
+    },
+    "ridge": {
+     "bias": -0.03145746550562201,
+     "mse": 0.06312524524317796,
+     "bias_sq": 0.0009895721360373988,
+     "variance_part": 0.06213567310714056,
+     "bias_sq_pct_of_mse": 1.5676329370686182,
+     "variance_part_pct_of_mse": 98.43236706293138
+    }
+   },
+   "7": {
+    "persistence": {
+     "bias": 0.0011632212955647388,
+     "mse": 0.9662490176427179,
+     "bias_sq": 1.3530837824553095e-06,
+     "variance_part": 0.9662476645589354,
+     "bias_sq_pct_of_mse": 0.00014003468647826647,
+     "variance_part_pct_of_mse": 99.99985996531352
+    },
+    "climatology": {
+     "bias": -0.8267338069531529,
+     "mse": 2.5309777622658474,
+     "bias_sq": 0.6834887875592531,
+     "variance_part": 1.8474889747065943,
+     "bias_sq_pct_of_mse": 27.004930574631466,
+     "variance_part_pct_of_mse": 72.99506942536853
+    },
+    "anomaly_persistence": {
+     "bias": 0.0011632212951165133,
+     "mse": 0.7112292119170767,
+     "bias_sq": 1.3530837814125387e-06,
+     "variance_part": 0.7112278588332952,
+     "bias_sq_pct_of_mse": 0.00019024581087795603,
+     "variance_part_pct_of_mse": 99.99980975418912
+    },
+    "damped_persistence": {
+     "bias": -0.2517996634357621,
+     "mse": 0.7285613937445098,
+     "bias_sq": 0.06340307050636307,
+     "variance_part": 0.6651583232381467,
+     "bias_sq_pct_of_mse": 8.702502088464643,
+     "variance_part_pct_of_mse": 91.29749791153536
+    },
+    "ocn": {
+     "bias": -0.4559604989423027,
+     "mse": 1.9322217200626997,
+     "bias_sq": 0.20789997659571366,
+     "variance_part": 1.724321743466986,
+     "bias_sq_pct_of_mse": 10.759633557424632,
+     "variance_part_pct_of_mse": 89.24036644257536
+    },
+    "ridge": {
+     "bias": -0.18911193979571095,
+     "mse": 0.7015169966428614,
+     "bias_sq": 0.0357633257732966,
+     "variance_part": 0.6657536708695648,
+     "bias_sq_pct_of_mse": 5.097998472516486,
+     "variance_part_pct_of_mse": 94.90200152748352
+    }
+   },
+   "30": {
+    "persistence": {
+     "bias": 0.0016276778920146719,
+     "mse": 6.522221642741441,
+     "bias_sq": 2.6493353201533257e-06,
+     "variance_part": 6.5222189934061205,
+     "bias_sq_pct_of_mse": 4.0620136285950394e-05,
+     "variance_part_pct_of_mse": 99.99995937986371
+    },
+    "climatology": {
+     "bias": -0.8267338069531529,
+     "mse": 2.5309777622658474,
+     "bias_sq": 0.6834887875592531,
+     "variance_part": 1.8474889747065943,
+     "bias_sq_pct_of_mse": 27.004930574631466,
+     "variance_part_pct_of_mse": 72.99506942536853
+    },
+    "anomaly_persistence": {
+     "bias": 0.0016276778918291092,
+     "mse": 1.9751705858873037,
+     "bias_sq": 2.649335319549253e-06,
+     "variance_part": 1.975167936551984,
+     "bias_sq_pct_of_mse": 0.0001341319751559127,
+     "variance_part_pct_of_mse": 99.99986586802484
+    },
+    "damped_persistence": {
+     "bias": -0.526911911603959,
+     "mse": 1.7540292252412968,
+     "bias_sq": 0.2776361625901383,
+     "variance_part": 1.4763930626511585,
+     "bias_sq_pct_of_mse": 15.828479856254658,
+     "variance_part_pct_of_mse": 84.17152014374534
+    },
+    "ocn": {
+     "bias": -0.4559604989423027,
+     "mse": 1.9322217200626997,
+     "bias_sq": 0.20789997659571366,
+     "variance_part": 1.724321743466986,
+     "bias_sq_pct_of_mse": 10.759633557424632,
+     "variance_part_pct_of_mse": 89.24036644257536
+    },
+    "ridge": {
+     "bias": -0.44168406622944706,
+     "mse": 1.641875868023249,
+     "bias_sq": 0.19508481436097858,
+     "variance_part": 1.4467910536622703,
+     "bias_sq_pct_of_mse": 11.88182481760041,
+     "variance_part_pct_of_mse": 88.1181751823996
+    }
+   }
+  },
+  "subtropical": {
+   "1": {
+    "persistence": {
+     "bias": -0.00020757905526920577,
+     "mse": 0.015367886187554016,
+     "bias_sq": 4.308906418645598e-08,
+     "variance_part": 0.01536784309848983,
+     "bias_sq_pct_of_mse": 0.00028038380594822796,
+     "variance_part_pct_of_mse": 99.99971961619406
+    },
+    "climatology": {
+     "bias": -0.6560699210694481,
+     "mse": 0.7151457655206519,
+     "bias_sq": 0.4304277413320718,
+     "variance_part": 0.2847180241885801,
+     "bias_sq_pct_of_mse": 60.18741382306933,
+     "variance_part_pct_of_mse": 39.81258617693067
+    },
+    "anomaly_persistence": {
+     "bias": -0.00020757905526920593,
+     "mse": 0.014785926857150298,
+     "bias_sq": 4.308906418645605e-08,
+     "variance_part": 0.014785883768086112,
+     "bias_sq_pct_of_mse": 0.0002914194328346666,
+     "variance_part_pct_of_mse": 99.99970858056717
+    },
+    "damped_persistence": {
+     "bias": -0.052917642043758754,
+     "mse": 0.018183376253116067,
+     "bias_sq": 0.0028002768394713843,
+     "variance_part": 0.015383099413644684,
+     "bias_sq_pct_of_mse": 15.400202913314867,
+     "variance_part_pct_of_mse": 84.59979708668513
+    },
+    "ocn": {
+     "bias": -0.19199635339447294,
+     "mse": 0.35358492346303305,
+     "bias_sq": 0.036862599716775336,
+     "variance_part": 0.3167223237462577,
+     "bias_sq_pct_of_mse": 10.425387868843702,
+     "variance_part_pct_of_mse": 89.5746121311563
+    },
+    "ridge": {
+     "bias": -0.030945780058877697,
+     "mse": 0.016267661872430707,
+     "bias_sq": 0.0009576413034524325,
+     "variance_part": 0.015310020568978275,
+     "bias_sq_pct_of_mse": 5.886779003412752,
+     "variance_part_pct_of_mse": 94.11322099658724
+    }
+   },
+   "7": {
+    "persistence": {
+     "bias": -0.00065235710871298,
+     "mse": 0.15313591033145577,
+     "bias_sq": 4.2556979728835884e-07,
+     "variance_part": 0.15313548476165847,
+     "bias_sq_pct_of_mse": 0.00027790333199262813,
+     "variance_part_pct_of_mse": 99.99972209666801
+    },
+    "climatology": {
+     "bias": -0.6560699210694481,
+     "mse": 0.7151457655206519,
+     "bias_sq": 0.4304277413320718,
+     "variance_part": 0.2847180241885801,
+     "bias_sq_pct_of_mse": 60.18741382306933,
+     "variance_part_pct_of_mse": 39.81258617693067
+    },
+    "anomaly_persistence": {
+     "bias": -0.0006523571087129846,
+     "mse": 0.12427199658100761,
+     "bias_sq": 4.2556979728836477e-07,
+     "variance_part": 0.12427157101121032,
+     "bias_sq_pct_of_mse": 0.000342450277614196,
+     "variance_part_pct_of_mse": 99.99965754972239
+    },
+    "damped_persistence": {
+     "bias": -0.2369832297200168,
+     "mse": 0.1723967922320376,
+     "bias_sq": 0.05616105116853026,
+     "variance_part": 0.11623574106350734,
+     "bias_sq_pct_of_mse": 32.5766218973148,
+     "variance_part_pct_of_mse": 67.42337810268519
+    },
+    "ocn": {
+     "bias": -0.19199635339447294,
+     "mse": 0.35358492346303305,
+     "bias_sq": 0.036862599716775336,
+     "variance_part": 0.3167223237462577,
+     "bias_sq_pct_of_mse": 10.425387868843702,
+     "variance_part_pct_of_mse": 89.5746121311563
+    },
+    "ridge": {
+     "bias": -0.1378658635312715,
+     "mse": 0.1367384988031662,
+     "bias_sq": 0.019006996327223177,
+     "variance_part": 0.11773150247594301,
+     "bias_sq_pct_of_mse": 13.900252301719046,
+     "variance_part_pct_of_mse": 86.09974769828095
+    }
+   },
+   "30": {
+    "persistence": {
+     "bias": -0.006893993738696394,
+     "mse": 0.8331066819306728,
+     "bias_sq": 4.752714966918509e-05,
+     "variance_part": 0.8330591547810037,
+     "bias_sq_pct_of_mse": 0.005704809564009723,
+     "variance_part_pct_of_mse": 99.99429519043599
+    },
+    "climatology": {
+     "bias": -0.6560699210694481,
+     "mse": 0.7151457655206519,
+     "bias_sq": 0.4304277413320718,
+     "variance_part": 0.2847180241885801,
+     "bias_sq_pct_of_mse": 60.18741382306933,
+     "variance_part_pct_of_mse": 39.81258617693067
+    },
+    "anomaly_persistence": {
+     "bias": -0.006893993738696393,
+     "mse": 0.32650651014901855,
+     "bias_sq": 4.752714966918507e-05,
+     "variance_part": 0.3264589829993494,
+     "bias_sq_pct_of_mse": 0.014556264022880749,
+     "variance_part_pct_of_mse": 99.98544373597711
+    },
+    "damped_persistence": {
+     "bias": -0.39210119578206176,
+     "mse": 0.3887165207464546,
+     "bias_sq": 0.15374334773372272,
+     "variance_part": 0.23497317301273185,
+     "bias_sq_pct_of_mse": 39.55153422306016,
+     "variance_part_pct_of_mse": 60.44846577693984
+    },
+    "ocn": {
+     "bias": -0.19199635339447294,
+     "mse": 0.35358492346303305,
+     "bias_sq": 0.036862599716775336,
+     "variance_part": 0.3167223237462577,
+     "bias_sq_pct_of_mse": 10.425387868843702,
+     "variance_part_pct_of_mse": 89.5746121311563
+    },
+    "ridge": {
+     "bias": -0.28691555597671536,
+     "mse": 0.32289503738477754,
+     "bias_sq": 0.08232053626142768,
+     "variance_part": 0.24057450112334985,
+     "bias_sq_pct_of_mse": 25.494518877764758,
+     "variance_part_pct_of_mse": 74.50548112223524
+    }
+   }
+  }
+ }
+}
