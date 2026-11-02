@@ -1,0 +1,45 @@
+{
+  "tolerance": 1e-05,
+  "rows": [
+    {
+      "region": "kuroshio",
+      "year": 1982,
+      "erddap_file": "data/raw/_erddap_1982-1991/kuroshio/1982.nc",
+      "n_overlap_days": 365,
+      "n_cells_compared": 584000,
+      "max_abs_diff": 1.3302705116385436e+37,
+      "n_cells_diff_gt_tol": 49600,
+      "n_nan_mismatch": 0
+    },
+    {
+      "region": "kuroshio",
+      "year": 1983,
+      "erddap_file": "data/raw/_erddap_1982-1991/kuroshio/1983.nc",
+      "n_overlap_days": 365,
+      "n_cells_compared": 584000,
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0,
+      "n_nan_mismatch": 0
+    },
+    {
+      "region": "subtropical",
+      "year": 1982,
+      "erddap_file": "data/raw/_erddap_1982-1991/subtropical/1982.nc",
+      "n_overlap_days": 365,
+      "n_cells_compared": 584000,
+      "max_abs_diff": 7.734545576562162e+35,
+      "n_cells_diff_gt_tol": 49600,
+      "n_nan_mismatch": 0
+    },
+    {
+      "region": "subtropical",
+      "year": 1983,
+      "erddap_file": "data/raw/_erddap_1982-1991/subtropical/1983.nc",
+      "n_overlap_days": 365,
+      "n_cells_compared": 584000,
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0,
+      "n_nan_mismatch": 0
+    }
+  ]
+}

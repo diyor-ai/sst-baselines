@@ -1,0 +1,397 @@
+{
+  "tolerance": 1e-05,
+  "rows": [
+    {
+      "region": "kuroshio",
+      "date": "1999-01-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "1999-01-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "1999-04-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "1999-04-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "1999-07-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "1999-07-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "1999-10-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "1999-10-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2005-01-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2005-01-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2005-04-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2005-04-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2005-07-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2005-07-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2005-10-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2005-10-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2010-01-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2010-01-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2010-04-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2010-04-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2010-07-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2010-07-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2010-10-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2010-10-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2015-01-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2015-01-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2015-04-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2015-04-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2015-07-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2015-07-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2015-10-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2015-10-15",
+      "psl_label": "v2 (AVHRR only)",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2016-01-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2016-01-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2016-04-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2016-04-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2016-07-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2016-07-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2016-10-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2016-10-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2020-01-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2020-01-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2020-04-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2020-04-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2020-07-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2020-07-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2020-10-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2020-10-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2024-01-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2024-01-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2024-04-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2024-04-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2024-07-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2024-07-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "kuroshio",
+      "date": "2024-10-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    },
+    {
+      "region": "subtropical",
+      "date": "2024-10-15",
+      "psl_label": "Version 2.1",
+      "max_abs_diff": 1.9073486328125e-06,
+      "n_cells_diff_gt_tol": 0
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "anomaly_definition": "SST minus training-years (1982-01-01 to 2015-12-31) day-of-year mean; preliminary",
+  "kuroshio": {
+    "region_mean_anomaly_std": 0.6543022394180298,
+    "region_mean_anomaly_lag1_autocorr": 0.9842696120548482,
+    "n_days": 12418
+  },
+  "subtropical": {
+    "region_mean_anomaly_std": 0.5114931464195251,
+    "region_mean_anomaly_lag1_autocorr": 0.9785206391888354,
+    "n_days": 12418
+  }
+}
