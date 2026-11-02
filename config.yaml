@@ -20,3 +20,10 @@ leads_days: [1, 7, 30]
 seed: 0
 climatology: {years: "train", smoothing: "harmonics3", feb29: "use_feb28"}
 ocn_years: 10
+ridge:
+  # Day 3: alpha grid fixed in advance (13 values, 1e-3 ... 1e3); alpha chosen per region and lead on VALIDATION RMSE (2016-2019).
+  # Final Day-4 model = fitted on TRAINING years (1982-2015) ONLY with these alphas (no refit on validation; same as the climatology).
+  # Penalty: mean squared error + alpha*|w|^2 on standardised features (training mean/std). Chosen values: results/ridge_alphas.json
+  features: "anomaly lags 0..6 + mean anomaly t-29..t"
+  fit_years: "train"
+  alphas: {kuroshio: {1: 0.0031622776601683794, 7: 0.001, 30: 0.001}, subtropical: {1: 0.01, 7: 0.001, 30: 0.001}}
