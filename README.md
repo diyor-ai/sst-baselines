@@ -21,6 +21,9 @@ model: the point is to know how hard a baseline is to beat before any learned mo
   day is stored in `data/processed/<region>.nc` (`source`) and `data/raw/manifest.json`.
 - Result: 16,071 daily fields per region (1982-01-01 … 2025-12-31), 40×40 grid, no missing day, no land points.
 - Downloaded on 2026-11-02.
+- Variability (training years, anomaly vs the final harmonics3 climatology, cos(lat)-weighted; `results/region_stats.json`, key `final`):
+  per-point anomaly std 1.13 °C (Kuroshio) vs 0.69 °C (subtropical); area-mean anomaly std 0.66 vs 0.52 °C;
+  lag-1 autocorrelation of the area mean 0.984 vs 0.978. The earlier "preliminary" numbers (unsmoothed day-of-year mean) are kept under `preliminary`.
 - Split: training 1982–2015, validation 2016–2019, test 2020–2025 (the test period is not loaded in any validation code).
 
 ## Data notes
@@ -68,7 +71,7 @@ Validation (2016–2019) complete for all baselines and Ridge. **Test period not
   there, see `results/ridge_alphas.json`); the grid was not extended.
 - OISST is an analysis (interpolated from satellites and in situ data), not raw observations; its character changes over time.
 - 1,194 days per region come from a second source (PSL), validated but with a v2/v2.1 label change at 2016.
-- Figure 1 uses a preliminary (unsmoothed) day-of-year anomaly; the scores use the harmonics3 climatology.
+- Figure 1 (`fig1_regions.png`) still shows the preliminary (unsmoothed day-of-year) anomaly std; the scores and the final region stats use the harmonics3 climatology.
 - Only SST is used; no other predictors, no probabilistic scores, no uncertainty intervals yet.
 
 ## How this was built

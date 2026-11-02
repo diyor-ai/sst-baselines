@@ -1,30 +1,49 @@
 {
-  "anomaly_definition": "SST minus training-years (1982-01-01 to 2015-12-31) day-of-year mean; preliminary",
-  "kuroshio": {
-    "point_anomaly_std_cosw_mean": 1.1197855472564697,
-    "point_lag1_autocorr_cosw_mean": 0.9491767883300781,
-    "area_mean_anomaly_std": 0.6527003645896912,
-    "area_mean_lag1_autocorr": 0.984234404227015,
-    "n_days": 12418
-  },
-  "subtropical": {
-    "point_anomaly_std_cosw_mean": 0.6862866878509521,
-    "point_lag1_autocorr_cosw_mean": 0.9200121760368347,
-    "area_mean_anomaly_std": 0.510836124420166,
-    "area_mean_lag1_autocorr": 0.9785101641168967,
-    "n_days": 12418
-  },
-  "superseded_2026-11-02_day1_unweighted_area_mean": {
+  "preliminary": {
+    "anomaly_definition": "SST minus training-years (1982-01-01 to 2015-12-31) day-of-year mean; preliminary",
     "kuroshio": {
-      "region_mean_anomaly_std": 0.6543022394180298,
-      "region_mean_anomaly_lag1_autocorr": 0.9842696120548482,
+      "point_anomaly_std_cosw_mean": 1.1197855472564697,
+      "point_lag1_autocorr_cosw_mean": 0.9491767883300781,
+      "area_mean_anomaly_std": 0.6527003645896912,
+      "area_mean_lag1_autocorr": 0.984234404227015,
       "n_days": 12418
     },
     "subtropical": {
-      "region_mean_anomaly_std": 0.5114931464195251,
-      "region_mean_anomaly_lag1_autocorr": 0.9785206391888354,
+      "point_anomaly_std_cosw_mean": 0.6862866878509521,
+      "point_lag1_autocorr_cosw_mean": 0.9200121760368347,
+      "area_mean_anomaly_std": 0.510836124420166,
+      "area_mean_lag1_autocorr": 0.9785101641168967,
+      "n_days": 12418
+    },
+    "superseded_2026-11-02_day1_unweighted_area_mean": {
+      "kuroshio": {
+        "region_mean_anomaly_std": 0.6543022394180298,
+        "region_mean_anomaly_lag1_autocorr": 0.9842696120548482,
+        "n_days": 12418
+      },
+      "subtropical": {
+        "region_mean_anomaly_std": 0.5114931464195251,
+        "region_mean_anomaly_lag1_autocorr": 0.9785206391888354,
+        "n_days": 12418
+      }
+    },
+    "note": "anomaly = SST minus training-years day-of-year mean (preliminary, unsmoothed); weights = cos(lat) normalised to mean 1. The superseded block used an unweighted area mean (kept for the record; also in git commit c214b04)."
+  },
+  "final": {
+    "anomaly_definition": "SST minus FINAL training climatology (harmonics3, years 1982-01-01 to 2015-12-31); cos(lat) weights",
+    "kuroshio": {
+      "point_anomaly_std_cosw_mean": 1.1340259524816247,
+      "point_lag1_autocorr_cosw_mean": 0.9488421285376656,
+      "area_mean_anomaly_std": 0.659828622000034,
+      "area_mean_lag1_autocorr": 0.9840251827607567,
+      "n_days": 12418
+    },
+    "subtropical": {
+      "point_anomaly_std_cosw_mean": 0.6930663801598163,
+      "point_lag1_autocorr_cosw_mean": 0.9190702123619796,
+      "area_mean_anomaly_std": 0.515830301388561,
+      "area_mean_lag1_autocorr": 0.9782332116410769,
       "n_days": 12418
     }
-  },
-  "note": "anomaly = SST minus training-years day-of-year mean (preliminary, unsmoothed); weights = cos(lat) normalised to mean 1. The superseded block used an unweighted area mean (kept for the record; also in git commit c214b04)."
+  }
 }

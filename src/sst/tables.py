@@ -25,7 +25,7 @@ def main():
     for reg, a in b["area_mean_anomaly"].items():
         print(reg, "mean anomaly train %.3f val %.3f" % (a["mean_train"], a["mean_val"]),
               {y: round(v, 2) for y, v in a["yearly_mean"].items() if int(y) >= 2013})
-    rs = json.loads((R / "region_stats.json").read_text())
+    rs = json.loads((R / "region_stats.json").read_text())["final"]
     print({k: v["point_anomaly_std_cosw_mean"] for k, v in rs.items() if isinstance(v, dict) and "point_anomaly_std_cosw_mean" in v})
     a = json.loads((R / "ridge_alphas.json").read_text())
     print({r: {h: i["alpha"] for h, i in v.items()} for r, v in a["regions"].items()})

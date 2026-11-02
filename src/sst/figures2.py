@@ -19,17 +19,37 @@ STYLE = {  # Okabe-Ito colours (colour-blind safe) + distinct markers
 }
 
 
-def fig2():
-    d = json.loads((RES / "val_all.json").read_text())
+SKILL_YLIM = (-0.8, 0.3)
+
+
+def fig2(src="val_all.json", out_name="fig2_val_leads.png",
+         footnote="validation 2016–2019 (1461 days per lead); all models use the 1982–2015 climatology / training years"):
+    """RMSE (left) and skill vs anomaly persistence (right). In the skill panel the y-axis is limited to
+    SKILL_YLIM; values below it (climatology / OCN at short leads) are drawn as off-scale arrows with their value."""
+    d = json.loads((RES / src).read_text())
     leads, regions = d["leads_days"], list(d["regions"])
+    lo, hi = SKILL_YLIM
     fig, axes = plt.subplots(len(regions), 2, figsize=(11, 4.2 * len(regions)), squeeze=False)
     for i, reg in enumerate(regions):
+        off = {h: [] for h in leads}
         for m in d["methods"]:
             c, mk, lab = STYLE[m]
             rm = [d["regions"][reg][str(h)]["methods"][m]["overall"]["rmse"] for h in leads]
             sk = [d["regions"][reg][str(h)]["skill"][m]["rmse_skill_vs_anomaly_persistence"] for h in leads]
             axes[i, 0].plot(leads, rm, color=c, marker=mk, label=lab, lw=1.6)
-            axes[i, 1].plot(leads, sk, color=c, marker=mk, label=lab, lw=1.6)
+            inside = [(h, v) for h, v in zip(leads, sk) if v >= lo]
+            axes[i, 1].plot([h for h, _ in inside], [v for _, v in inside], color=c, marker=mk, label=lab, lw=1.6)
+            for h, v in zip(leads, sk):
+                if v < lo:
+                    off[h].append((m, v))
+        for h, items in off.items():  # off-scale values: arrow at the bottom edge + labelled value
+            for j, (m, v) in enumerate(items):
+                c, _, lab = STYLE[m]
+                y = lo + 0.05 + 0.075 * j
+                axes[i, 1].plot([h], [y], marker="v", color=c, ms=7, ls="none", clip_on=False)
+                axes[i, 1].annotate(f"{lab}: {v:+.2f} (off scale)", (h, y), xytext=(7, 0), textcoords="offset points",
+                                    fontsize=7, color=c, va="center", ha="left" if h < leads[-1] else "right")
+        axes[i, 1].set_ylim(lo, hi)
         axes[i, 1].axhline(0, color="k", lw=0.6, ls=":")
         axes[i, 0].set_ylabel("RMSE (°C)")
         axes[i, 1].set_ylabel("Skill vs anomaly persistence\n(1 − RMSE/RMSE$_{ap}$, unitless)")
@@ -41,10 +61,9 @@ def fig2():
             ax.set_xlabel("Lead time (days)")
             ax.grid(alpha=0.3)
     axes[0, 0].legend(fontsize=8)
-    fig.text(0.01, 0.005, "validation 2016–2019 (1461 days per lead); all models use the 1982–2015 climatology / training years",
-             fontsize=8, ha="left")
+    fig.text(0.01, 0.005, footnote, fontsize=8, ha="left")
     fig.tight_layout(rect=(0, 0.02, 1, 1))
-    out = RES / "figures" / "fig2_val_leads.png"
+    out = RES / "figures" / out_name
     fig.savefig(out, dpi=150)
     plt.close(fig)
     return out
