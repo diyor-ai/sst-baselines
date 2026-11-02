@@ -84,12 +84,19 @@ def facts(D):
     f["n_gap"] = int((src == 1).sum())
     f["n_erddap"] = int((src == 0).sum())
     # ---- guarded claims ----
-    for h in LEADS:  # anomaly persistence/damped/ridge >> climatology & OCN at 1 day
-        for r in D.regions:
-            assert D.rmse(t, r, "1", "ridge") < 0.5 * min(D.rmse(t, r, "1", "climatology"), D.rmse(t, r, "1", "ocn"))
+    for r in D.regions:  # anomaly persistence/ridge << climatology & OCN at 1 day
+        assert D.rmse(t, r, "1", "ridge") < 0.5 * min(D.rmse(t, r, "1", "climatology"), D.rmse(t, r, "1", "ocn"))
     assert all(D.skill(t, K, h, "ridge") > 0 for h in LEADS)                  # Ridge beats AP everywhere in Kuroshio
     assert D.skill(t, S, "1", "ridge") < 0 and D.skill(t, S, "7", "ridge") < 0   # but not at 1/7 d in the subtropical box
     assert all(D.skill(t, r, "30", "persistence") < -0.5 for r in D.regions)    # plain persistence is poor at 30 d
+    for r in D.regions:  # claims behind the ranking-change finding
+        assert all(D.skill(v, r, h, "ridge") > 0 for h in LEADS)
+        assert D.skill(t, r, "1", "ridge") < D.skill(v, r, "1", "ridge") and D.skill(t, r, "30", "ridge") < D.skill(v, r, "30", "ridge")
+        assert D.tb["regions"][r]["1"]["climatology"]["bias"] < D.vb["bias_by_region"][r]["1"]["climatology"]["bias"] < 0
+        assert D.tb["regions"][r]["30"]["damped_persistence"]["bias"] < D.vb["bias_by_region"][r]["30"]["damped_persistence"]["bias"] < 0
+    assert all(D.skill(v, K, h, "damped_persistence") > 0 for h in LEADS)
+    assert all(D.skill(t, S, h, "damped_persistence") < 0 for h in LEADS)
+    assert all(D.skill(t, K, h, "damped_persistence") < D.skill(v, K, h, "damped_persistence") for h in LEADS)
     for r in D.regions:
         bb = D.tb["regions"][r]["30"]
         assert bb["climatology"]["bias"] < -0.5 and bb["ridge"]["bias"] < 0 and bb["damped_persistence"]["bias"] < 0
@@ -102,24 +109,39 @@ def findings(D, f):
     t, v, K, S = D.test, D.val, "kuroshio", "subtropical"
     r = lambda d, reg, h, m: D.rmse(d, reg, h, m)  # noqa: E731
     k = lambda reg, h, m: D.skill(t, reg, h, m)  # noqa: E731
+    kv = lambda reg, h, m: D.skill(v, reg, h, m)  # noqa: E731
     b = lambda reg, h, m: D.tb["regions"][reg][h][m]["bias"]  # noqa: E731
+    bv = lambda reg, h, m: D.vb["bias_by_region"][reg][h][m]["bias"]  # noqa: E731
+    sk = lambda fn, reg, m: ", ".join(sg(fn(reg, h, m)) for h in LEADS)  # noqa: E731
     return [
         ("Anomaly persistence is the bar to beat, especially at short range.",
-         f"At 1 day all anomaly-based methods have RMSE of {f3(r(t, S, '1', 'anomaly_persistence'))}–{f3(r(t, K, '1', 'anomaly_persistence'))} °C "
-         f"(subtropical–Kuroshio, anomaly persistence), while climatology gives {f3(r(t, S, '1', 'climatology'))}–{f3(r(t, K, '1', 'climatology'))} °C "
-         f"and OCN {f3(r(t, S, '1', 'ocn'))}–{f3(r(t, K, '1', 'ocn'))} °C. Ridge's margin over anomaly persistence at 1 day is small "
+         f"Its 1-day RMSE is {f3(r(t, S, '1', 'anomaly_persistence'))} °C (subtropical) and {f3(r(t, K, '1', 'anomaly_persistence'))} °C (Kuroshio), "
+         f"while climatology gives {f3(r(t, S, '1', 'climatology'))} and {f3(r(t, K, '1', 'climatology'))} °C and OCN {f3(r(t, S, '1', 'ocn'))} and "
+         f"{f3(r(t, K, '1', 'ocn'))} °C. Ridge's margin over anomaly persistence at 1 day is small "
          f"(skill {sg(k(K, '1', 'ridge'))} Kuroshio, {sg(k(S, '1', 'ridge'))} subtropical)."),
         ("Ridge helps in the high-variability Kuroshio box, not reliably in the subtropical box.",
-         f"Kuroshio: Ridge beats anomaly persistence at every lead (skill {sg(k(K, '1', 'ridge'))}, {sg(k(K, '7', 'ridge'))}, {sg(k(K, '30', 'ridge'))} "
-         f"at 1, 7, 30 d). Subtropical: Ridge is worse at 1 and 7 days ({sg(k(S, '1', 'ridge'))}, {sg(k(S, '7', 'ridge'))}) and about equal at 30 d "
-         f"({sg(k(S, '30', 'ridge'))}); on validation it had been better at all leads ({sg(D.skill(v, S, '1', 'ridge'))}, "
-         f"{sg(D.skill(v, S, '7', 'ridge'))}, {sg(D.skill(v, S, '30', 'ridge'))}). The validation advantage did not carry over."),
+         f"Kuroshio: Ridge beats anomaly persistence at every lead (skill {sk(k, K, 'ridge')} at 1, 7, 30 d). Subtropical: Ridge is worse at 1 and 7 days "
+         f"({sg(k(S, '1', 'ridge'))}, {sg(k(S, '7', 'ridge'))}) and about equal at 30 d ({sg(k(S, '30', 'ridge'))})."),
         ("Plain persistence fails at 30 days, and the warm shift hurts climatology-based forecasts.",
          f"Persistence at 30 d has skill {sg(k(K, '30', 'persistence'))} (Kuroshio) and {sg(k(S, '30', 'persistence'))} (subtropical) relative to anomaly persistence. "
          f"Against the 1982–2015 climatology the test years are warm: mean bias of the climatology forecast is {sg(b(K, '30', 'climatology'))} °C (Kuroshio) and "
          f"{sg(b(S, '30', 'climatology'))} °C (subtropical); Ridge at 30 d is also biased low ({sg(b(K, '30', 'ridge'))}, {sg(b(S, '30', 'ridge'))} °C)."),
-    ]
+        ("The ranking changed between validation and test.",
+         f"Methods that relax towards the 1982–2015 climatology (Ridge, damped persistence) beat anomaly persistence on validation but lost much or all of "
+         f"that advantage on test. Skill vs anomaly persistence at 1, 7, 30 d, validation → test: Ridge Kuroshio {sk(kv, K, 'ridge')} → {sk(k, K, 'ridge')}; "
+         f"Ridge subtropical {sk(kv, S, 'ridge')} → {sk(k, S, 'ridge')}; damped persistence Kuroshio {sk(kv, K, 'damped_persistence')} → {sk(k, K, 'damped_persistence')}; "
+         f"damped persistence subtropical {sk(kv, S, 'damped_persistence')} → {sk(k, S, 'damped_persistence')} (negative at every test lead). "
+         f"This is consistent with a larger warm shift in the test years: the climatology forecast's bias is {sg(bv(K, '1', 'climatology'))} / {sg(bv(S, '1', 'climatology'))} °C "
+         f"on validation but {sg(b(K, '1', 'climatology'))} / {sg(b(S, '1', 'climatology'))} °C on test (Kuroshio / subtropical), and the 30-day bias of damped persistence "
+         f"goes from {sg(bv(K, '30', 'damped_persistence'))} / {sg(bv(S, '30', 'damped_persistence'))} to {sg(b(K, '30', 'damped_persistence'))} / "
+         f"{sg(b(S, '30', 'damped_persistence'))} °C. It is not shown here that the warm shift is the cause.")]
 
+
+REFS = ["Huang, B., et al. (2021). Improvements of the Daily Optimum Interpolation Sea Surface Temperature (DOISST) Version 2.1. Journal of Climate, 34(8), 2923–2939. doi:10.1175/JCLI-D-20-0166.1",
+        "Murphy, A. H. (1992). Climatology, persistence, and their linear combination as standards of reference in skill scores. Weather and Forecasting, 7(4), 692–698. doi:10.1175/1520-0434(1992)007<0692:CPATLC>2.0.CO;2",
+        "Huang, J., van den Dool, H. M., and Barnston, A. G. (1996). Long-lead seasonal temperature prediction using optimal climate normals. Journal of Climate, 9(4), 809–817. doi:10.1175/1520-0442(1996)009<0809:LLSTPU>2.0.CO;2",
+        "Hao, R., Zhao, Y., Zhang, S., and Deng, X. (2025). Deep learning for ocean forecasting: a comprehensive review of methods, applications, and datasets. IEEE Transactions on Cybernetics, 55(6), 2879–2898. doi:10.1109/TCYB.2025.3539990"]
+REFS_MD = "\n".join(f"{i}. {x}" for i, x in enumerate(REFS, 1))
 
 FIGS = [("results/figures/fig1_regions.png", "Figure 1. Mean SST and standard deviation of the daily anomaly (training years) in the two regions."),
         ("results/figures/fig2_val_leads.png", "Figure 2 (validation). RMSE and skill vs anomaly persistence by lead."),
@@ -150,9 +172,11 @@ def readme(D, f):
     A(f"- **Primary: ERDDAP** `{cfg['dataset']['dataset_id']}` (NOAA OISST v2.1 final, daily, 0.25°, variable `sst`) – {f['n_erddap']:,} days per region.")
     A(f"- **Gap fill: NOAA PSL OPeNDAP** (`{cfg['dataset']['psl_base'].split('/Datasets/')[1]}`, `{cfg['dataset']['psl_file_pattern']}`) – only for the "
       f"{f['n_gap']:,} days per region that the ERDDAP aggregation lacks (mostly 1992–1998; visible in the server's own time axis, "
-      f"`data/raw/erddap_time_axis.csv`). Checks: every gap month fetched twice and identical, in range, plausible day-to-day, and matching ERDDAP on all "
+      f"copied to `results/erddap_time_axis.csv`). Checks: every gap month fetched twice and identical, in range, plausible day-to-day, and matching ERDDAP on all "
       f"overlap days ({f['n_pieces_ok']}/{f['n_pieces']} pieces, {f['n_years_ok']}/{f['n_years']} region-years, max |difference| "
       f"{f['max_diff']:.1e} °C, tolerance {f['tol']:.0e}). Nothing is interpolated; the source of every day is stored in `data/processed/<region>.nc` (`source`).")
+    A("- **Data are not included in this repository.** `data/` (raw downloads, the merged `data/processed/*.nc`) is gitignored and is regenerated by the scripts under *Reproduce*; "
+      "only the small time-axis file and the QC / validation JSON files are kept in `results/`.")
     A(f"- Result: **{f['n_days']:,} daily fields per region** ({f['first']} … {f['last']}), {f['grid']} grid, no missing day, no land point.")
     A("- Downloaded on 2026-11-02 (ERDDAP primary; PSL for gap days).")
     A("- Split (`config.yaml`): training 1982–2015, validation 2016–2019, test 2020–2025.\n")
@@ -196,7 +220,9 @@ def readme(D, f):
     A("## Status")
     A(f"Validation and test evaluation complete. The test period was evaluated once (commit `{f['commit'][:7]}`, tag `pre-test-freeze`, "
       f"started {f['run_utc']}). **Post-test changes:** none to methods or parameters. After the test run only figure and documentation code "
-      "was added (fig 2 / fig 3 layout, this README, the report).\n")
+      "was added (fig 2 / fig 3 layout, this README, the report). **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box "
+      "is 0.262 °C, so \"all anomaly-based methods\" was wrong), added the validation-to-test ranking-change finding, the data-availability note, the references and the report header; "
+      "no method, parameter or score changed.\n")
     A("## Limitations")
     A("- Two small regions, one product (OISST); results may not transfer elsewhere.\n"
       "- Simple statistical baselines only; no dynamical model, no other predictors, no probabilistic scores or uncertainty intervals.\n"
@@ -219,6 +245,8 @@ def readme(D, f):
       "python -m sst.run_test                  # test period, ONCE (guarded)\npython -m sst.figures2 test             # test fig 2 + fig 3\n"
       "python -m sst.make_docs                 # README.md + report/report.md/.html from results/*.json\n"
       "soffice --headless --convert-to pdf --outdir report report/report.html   # report.pdf\npytest                                  # synthetic tests\n```\n")
+    A("## References")
+    A(REFS_MD + "\n")
     A("## How this was built")
     A("The code was written with Claude Code (an AI coding assistant); the methodology, decisions and verification are mine.\n")
     return "\n".join(L)
@@ -227,10 +255,11 @@ def readme(D, f):
 def report_blocks(D, f):
     t, K, S = D.test, "kuroshio", "subtropical"
     cols = [(r, h) for r in D.regions for h in LEADS]
-    head = ["Method"] + [f"{r[:5]}. {h} d" for r, h in cols]
+    head = ["Method"] + [f"{r.capitalize()} {h} d" for r, h in cols]
     rows = [[LABEL[m]] + [cell(D, t, r, h, m) for r, h in cols] for m in t["methods"]]
     fi = findings(D, f)
     B = [("h1", "Simple SST forecast baselines in two North Pacific boxes: a test-period evaluation"),
+         ("auth", "Mukhammaddiyor Abdulazimov · Harbin Engineering University · November 2026"),
          ("p", "**Question.** How hard are simple baselines to beat for 1-, 7- and 30-day SST forecasts, and does a per-grid-point Ridge regression help? "
                "This is a baselines study, not an ocean forecasting model."),
          ("p", f"**Data.** NOAA OISST v2.1 daily 0.25° SST, two {f['grid']}-point boxes (Kuroshio extension, per-point anomaly std {f['std_pt_K']:.2f} °C; "
@@ -248,20 +277,27 @@ def report_blocks(D, f):
          ("p", "**Limitations.** Two small regions; simple statistical baselines; OISST is a smooth interpolated analysis; hybrid ERDDAP + PSL data (verified on overlaps); "
                "v2/v2.1 label change at 2016; warm shift vs the 1982–2015 climatology, not detrended; Ridge ignores spatial structure; its alpha sits at the grid's lower edge in several cases; one fixed split."),
          ("p", "**Next step.** Optionally a small LSTM under the same protocol (reference: Hao et al. 2025, IEEE Trans. Cybernetics 55(6), review). "
-               "Code and data checks: `README.md`, `results/*.json`.")]
+               "Code and data checks: `README.md`, `results/*.json`."),
+         ("refs", REFS),
+         ("p", "*Code written with Claude Code; methodology, decisions and verification by the author.*")]
     return B
 
 
 def render_report(blocks):
     import re
     md, ht = [], []
-    inline = lambda s: re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", html.escape(s, quote=False)).replace("`", "")  # noqa: E731
+    inline = lambda s: re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"<i>\1</i>", re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", html.escape(s, quote=False))).replace("`", "")  # noqa: E731
     for b in blocks:
         k = b[0]
         if k == "h1":
             md.append(f"# {b[1]}\n"); ht.append(f"<h1>{html.escape(b[1])}</h1>")
         elif k == "p":
             md.append(b[1] + "\n"); ht.append(f"<p>{inline(b[1])}</p>")
+        elif k == "auth":
+            md.append(f"*{b[1]}*\n"); ht.append(f"<p><i>{html.escape(b[1])}</i></p>")
+        elif k == "refs":
+            md.append("**References**\n\n" + "\n".join(f"{i}. {x}" for i, x in enumerate(b[1], 1)) + "\n")
+            ht.append("<p><b>References</b></p><ol class='r'>" + "".join(f"<li>{html.escape(x)}</li>" for x in b[1]) + "</ol>")
         elif k == "cap":
             md.append(f"*{b[1]}*\n"); ht.append(f"<p><i>{html.escape(b[1])}</i></p>")
         elif k == "table":
@@ -271,12 +307,12 @@ def render_report(blocks):
         elif k == "ol":
             md.append("\n".join(f"{i}. {x}" for i, x in enumerate(b[1], 1)) + "\n")
             ht.append("<ol>" + "".join(f"<li>{inline(x)}</li>" for x in b[1]) + "</ol>")
-    css = ("<style>@page{size:21cm 29.7cm;margin:1.0cm}body{font-family:'DejaVu Sans',Arial;font-size:7.6pt}"
-           "h1{font-size:11pt;margin:0 0 3pt 0}p{margin:0 0 3pt 0}td,th{font-size:6pt}ol{margin:0 0 3pt 0}li{margin:0}</style>")
+    css = ("<style>@page{size:21cm 29.7cm;margin:1.0cm}body{font-family:'DejaVu Sans',Arial;font-size:7.2pt}"
+           "h1{font-size:11pt;margin:0 0 3pt 0}p{margin:0 0 3pt 0}td,th{font-size:6pt}ol{margin:0 0 3pt 0}li{margin:0}ol.r li{font-size:6pt}</style>")
     return "\n".join(md), f"<html><head><meta charset='utf-8'>{css}</head><body>" + "\n".join(ht) + "</body></html>"
 
 
-IMG_PX = 500
+IMG_PX = 400
 
 
 def main():
