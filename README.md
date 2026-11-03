@@ -36,6 +36,8 @@ Know the strength of simple baselines before any learned model is compared with 
 
 Chosen Ridge alphas (validation): kuroshio: 1 d = 0.00316, 7 d = 0.001, 30 d = 0.001; subtropical: 1 d = 0.01, 7 d = 0.001, 30 d = 0.001.
 
+**How each baseline is calculated:** [`report/methods_note.pdf`](report/methods_note.pdf) (exact formulas, every choice explained, and a worked numeric example from the real data; source `report/methods_note.md`).
+
 ## Results
 Cells: RMSE in °C (skill vs anomaly persistence, unitless; 0 for anomaly persistence by definition). Validation = 2016–2019 (1461 days per lead), test = 2020–2025 (2192 days per lead). Full scores (MAE, ACC, skill vs climatology, by season and year) are in `results/val_all.json` and `results/test_all.json`; bias in `results/val_bias.json` and `results/test_bias.json`.
 
@@ -122,6 +124,7 @@ python -m sst.run_test                  # test period, ONCE (guarded)
 python -m sst.figures2 test             # test fig 2 + fig 3
 python -m sst.make_docs                 # README.md + report/report.md/.html from results/*.json
 soffice --headless --convert-to pdf --outdir report report/report.html   # report.pdf
+python report/methods_example.py && python report/build_methods_note.py   # methods note (then soffice as above on report/methods_note.html)
 pytest                                  # synthetic tests
 ```
 

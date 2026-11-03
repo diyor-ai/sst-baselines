@@ -203,6 +203,7 @@ def readme(D, f):
       "| Ridge | climatology(t+h) + Ridge(anomaly lags 0–6 and mean anomaly t−29..t); one model per grid point and lead; features standardised with training statistics; alpha from a 13-value log grid 1e-3…1e3, one alpha per region and lead |\n")
     A("Chosen Ridge alphas (validation): " + "; ".join(
         f"{r}: " + ", ".join(f"{h} d = {D.alph['regions'][r][h]['alpha']:.3g}" for h in LEADS) for r in D.regions) + ".\n")
+    A("**How each baseline is calculated:** [`report/methods_note.pdf`](report/methods_note.pdf) (exact formulas, every choice explained, and a worked numeric example from the real data; source `report/methods_note.md`).\n")
     A("## Results")
     A(f"Cells: RMSE in °C (skill vs anomaly persistence, unitless; 0 for anomaly persistence by definition). Validation = 2016–2019 "
       f"({f['n_val']} days per lead), test = 2020–2025 ({f['n_test']} days per lead). Full scores (MAE, ACC, skill vs climatology, by season and year) "
@@ -244,7 +245,8 @@ def readme(D, f):
       "python -m sst.figures2                  # validation fig 2 + fig S1\n# freeze: commit config.yaml + src, then: git tag pre-test-freeze\n"
       "python -m sst.run_test                  # test period, ONCE (guarded)\npython -m sst.figures2 test             # test fig 2 + fig 3\n"
       "python -m sst.make_docs                 # README.md + report/report.md/.html from results/*.json\n"
-      "soffice --headless --convert-to pdf --outdir report report/report.html   # report.pdf\npytest                                  # synthetic tests\n```\n")
+      "soffice --headless --convert-to pdf --outdir report report/report.html   # report.pdf\n"
+      "python report/methods_example.py && python report/build_methods_note.py   # methods note (then soffice as above on report/methods_note.html)\npytest                                  # synthetic tests\n```\n")
     A("## References")
     A(REFS_MD + "\n")
     A("## How this was built")
