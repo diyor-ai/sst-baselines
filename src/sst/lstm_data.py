@@ -55,13 +55,15 @@ class LSTMData:
         return self.a.shape[1]
 
 
-def make_data(sst, cfg, clim=None):
-    """`sst`: DataArray (time, latitude, longitude), daily, ALREADY cut at the validation end (checked here)."""
+def make_data(sst, cfg, clim=None, period="val"):
+    """`sst`: DataArray (time, latitude, longitude), daily, ALREADY cut at the end of `period` (checked here).
+    period="val" (default, used for training/validation) or "test" (only the guarded test runner, src/sst/lstm_test.py).
+    The `val_pairs` field holds the pairs of that period."""
     split, leads = cfg["split"], tuple(cfg["leads_days"])
     tr0, tr1 = map(pd.Timestamp, split["train"])
-    va0, va1 = map(pd.Timestamp, split["val"])
+    va0, va1 = map(pd.Timestamp, split[period])
     if pd.Timestamp(sst.time.max().values) > va1:
-        raise ValueError("sst contains days after the validation end: cut the data first (test period must not be loaded)")
+        raise ValueError("sst contains days after the end of the evaluation period: cut the data first")
     if clim is None:
         clim = build_climatology(sst, cfg)  # uses training years only
     full = pd.date_range(sst.time.min().values, sst.time.max().values)
@@ -83,11 +85,18 @@ def make_data(sst, cfg, clim=None):
                     val_pairs=va_flat, shape=(anom.sizes["latitude"], anom.sizes["longitude"]), clim=clim)
 
 
+def gather_inputs(data, flat):
+    """Inputs only, (B, 30, 3) float32, for flat sample indices t*P+p. Reads days t-29..t and nothing later."""
+    P = data.n_points
+    t, p = flat // P, flat % P
+    idx = t[:, None] + np.arange(-SEQ_LEN + 1, 1)[None, :]            # days t-29..t (never later than t)
+    return np.concatenate([data.a[idx, p[:, None]][..., None], data.dayf[idx]], axis=2)
+
+
 def gather(data, flat):
     """Inputs (B, 30, 3) and targets (B, 3) float32 numpy arrays for flat sample indices t*P+p."""
     P = data.n_points
     t, p = flat // P, flat % P
-    idx = t[:, None] + np.arange(-SEQ_LEN + 1, 1)[None, :]            # days t-29..t (never later than t)
-    x = np.concatenate([data.a[idx, p[:, None]][..., None], data.dayf[idx]], axis=2)
+    x = gather_inputs(data, flat)
     y = np.stack([data.a[t + h, p] for h in data.leads], axis=1)
     return x, y

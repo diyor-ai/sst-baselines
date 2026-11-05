@@ -1,0 +1,8 @@
+{
+ "region": "kuroshio",
+ "hidden": 64,
+ "seed": 0,
+ "seconds_per_epoch": 34.0703444480896,
+ "n_train_samples_total": 19774400,
+ "n_val_samples": 2289600
+}

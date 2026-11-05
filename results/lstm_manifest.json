@@ -1,0 +1,281 @@
+{
+ "git_commit": "623281d057af88103ae9bc54d946627cac125551",
+ "git_dirty_in_code_files": false,
+ "code_sha256": {
+  "src/sst/lstm_data.py": "60694ddaf78143fce57b4fa9e8f101157ec681753173ae6edec82cc4bb2f6711",
+  "src/sst/lstm_model.py": "29a426d4c35a6cdbae516a6bd3b96b832a68a589c0c8abc92bf49b30a70da0cc",
+  "src/sst/lstm_train.py": "2c8461504ae4ec3525cf2ec98164319369360cdc671e483e56d138d074a8e153",
+  "src/sst/climatology.py": "98f69584c19eadd0c77619d1ed7e4b56bdb0a0b2c6324ae5aa285b5f64a80c7e",
+  "src/sst/download.py": "ee00b51365b3f45fcf5d8d2c7206007f7b0316c4a121b4a2a5bf328b20da9d68",
+  "config.yaml": "346a8ea1a6573e594379e7927c4e7c56a39bebb67ec87c79fbde30e78b01c431",
+  "data/processed/kuroshio.nc": "824ccd0d7d2e3dfc46927e2375d00a49c96768e502cf5f30f240916d5f3c4f31",
+  "data/processed/subtropical.nc": "759f7ddec465fba4b9773f15e612cc9635b947fb91d125d365086fa41583b672"
+ },
+ "code_checked_against_training_time_listing": true,
+ "config_lstm": {
+  "seq_len": 30,
+  "inputs": "standardised anomaly + sin/cos(day of year) of each input day -> (30, 3)",
+  "standardise": "one number per region = std of TRAINING anomalies (1982-2015, harmonics3 climatology)",
+  "outputs": "standardised anomaly at t+1, t+7, t+30 (leads_days)",
+  "train_samples": "issue dates whose 30-day window AND all three targets lie in split.train",
+  "val_samples": "issue dates in split.val whose three targets lie in split.val and whose 30-day history is complete (history may reach into 2015)",
+  "samples_per_epoch": 200000,
+  "hidden_sizes": [
+   32,
+   64
+  ],
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "lr": 0.001,
+  "batch_size": 1024,
+  "max_epochs": 30,
+  "patience": 5,
+  "num_threads": 4,
+  "selection": "per region: H with the lowest mean (over seeds 0,1,2 and over leads 1,7,30) validation RMSE of SST"
+ },
+ "runs": {
+  "kuroshio_H32_s0": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 32,
+   "seed": 0,
+   "best_epoch": 16,
+   "epochs_run": 21,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "253eb933df42c990ef4430ac6292722f6a375e0d0a190ee9a150c684d96d7471",
+   "weights_sha256": "b6e5d4771fbf51f9c8cb9f1b5f6fbc753b0a297d75aea634897bfbad6bad095c"
+  },
+  "kuroshio_H32_s1": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 32,
+   "seed": 1,
+   "best_epoch": 3,
+   "epochs_run": 8,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "873861aca406eb2e43a1cd4a8e73700b7a2df3c2dc525f0c26899491052925ef",
+   "weights_sha256": "77032c054e0b8e4a9dd1df4d5b20272bcb35b8c21d3fe0b7af1ccc13b72f4727"
+  },
+  "kuroshio_H32_s2": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 32,
+   "seed": 2,
+   "best_epoch": 3,
+   "epochs_run": 8,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "bd8b032b642130356dd1ee7fa1c89b2b7f72c4e007d43b692c64db7ffa164af1",
+   "weights_sha256": "7293ab171a6c5255c646434c395a4d0e82a9ae0848b3f7f380b33ad8a30cd833"
+  },
+  "kuroshio_H64_s0": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 64,
+   "seed": 0,
+   "best_epoch": 5,
+   "epochs_run": 10,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "4227f794d002b6fef2cb2b626b4e1311f5215487efc47da8a34161e874504190",
+   "weights_sha256": "0e3c2d5e4e63f0b7504a42763408238d74a56246b9fa2ce48fa00c84649b2ee8"
+  },
+  "kuroshio_H64_s1": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 64,
+   "seed": 1,
+   "best_epoch": 3,
+   "epochs_run": 8,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "433e670f0ced7becb881de28ba65811410fc962d099837cb5996460e96187a91",
+   "weights_sha256": "aed3e788715bd80f3bbc7e1492f184a43521ae403e4774e8eaf726c6b261f0f6"
+  },
+  "kuroshio_H64_s2": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 64,
+   "seed": 2,
+   "best_epoch": 16,
+   "epochs_run": 21,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "a6525033b18c2a547d58641fb71b94c57ddd1ffe919dc7de3d3331b013fcf35f",
+   "weights_sha256": "c1a9ab47bf4c4c63f881f20057205e1eb9bbc93da536b2dd84a8f3698b61f3e4"
+  },
+  "subtropical_H32_s0": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 32,
+   "seed": 0,
+   "best_epoch": 8,
+   "epochs_run": 13,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "6a5a6078757e1819e0807aab685329a92796c5ea4774b267f24db1f8bdb861a3",
+   "weights_sha256": "49b820c3633e29d034936e55b6edc8c61d5b01f5003e25e5183655d6b31bfb1b"
+  },
+  "subtropical_H32_s1": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 32,
+   "seed": 1,
+   "best_epoch": 5,
+   "epochs_run": 10,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "7537f0f825ac01bb7f95a82a14198ba51c0960a41405a9a4fd7c31dfaacd9030",
+   "weights_sha256": "405fbf4c27fce73946528cdf5f3f3b9a339b78fe24cb4ea058499186d947cfcc"
+  },
+  "subtropical_H32_s2": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 32,
+   "seed": 2,
+   "best_epoch": 2,
+   "epochs_run": 7,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "4d967d574b62ee91f4cd9bcc0277d1c6ae30a5ec4bd22a946b6b8e14bab0299f",
+   "weights_sha256": "ea5ffe964638bd316f4b1dabd6d98555cab33379da8c8971bd4bbb646d5f34f2"
+  },
+  "subtropical_H64_s0": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 64,
+   "seed": 0,
+   "best_epoch": 9,
+   "epochs_run": 14,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "52be766f863c7a4ad873133e3323f1fbf5d9d2952fbf5a9148d79a167674f84a",
+   "weights_sha256": "949cd1e8ecc5419563aaca3d2c16efc79a5ca8576d8b46dbde195a425f6f85b9"
+  },
+  "subtropical_H64_s1": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 64,
+   "seed": 1,
+   "best_epoch": 5,
+   "epochs_run": 10,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "e0c9b7eaa040d4d0c9fb101f8f696b5199b016283531652f66ed55cea1a8f0e6",
+   "weights_sha256": "e4c5923fd2e4f6dcc9d26e52338c5547cba09ead70ebee390e70c956e408a09d"
+  },
+  "subtropical_H64_s2": {
+   "settings": {
+    "seq_len": 30,
+    "samples_per_epoch": 200000,
+    "lr": 0.001,
+    "batch_size": 1024,
+    "max_epochs": 30,
+    "patience": 5,
+    "num_threads": 4
+   },
+   "torch": "2.14.1+cpu",
+   "hidden": 64,
+   "seed": 2,
+   "best_epoch": 6,
+   "epochs_run": 11,
+   "n_train_samples_total": 19774400,
+   "n_val_samples": 2289600,
+   "checkpoint_file_sha256": "6b79ad3ecff4322097e199671b7b7d4f242aadb47e052fbeb7913f4c27f6a961",
+   "weights_sha256": "4fdc276f5b29a303ca77d7a8a9f6328142a086e0bb5949b2abaa9e38cf121a3f"
+  }
+ }
+}

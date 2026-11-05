@@ -144,3 +144,45 @@ def test_model_can_overfit_a_tiny_batch(data):
         loss.backward()
         opt.step()
     assert float(loss) < 0.05 * first and float(loss) < 0.02
+
+
+# ---- test-period plumbing (synthetic; no real data) ----
+def _sst_to_2025():
+    dates = pd.date_range("1982-01-01", "2025-12-31")
+    rng = np.random.default_rng(1)
+    vals = 20 + 5 * np.sin(2 * np.pi * dates.day_of_year.values[:, None, None] / 365) + rng.normal(size=(len(dates), 2, 3))
+    return xr.DataArray(vals, dims=("time", "latitude", "longitude"),
+                        coords={"time": dates, "latitude": [20.0, 20.25], "longitude": [150.0, 150.25, 150.5]}, name="sst")
+
+
+def test_make_data_rejects_data_past_the_period_end():
+    cfg = dict(CFG, split=dict(CFG["split"], test=["2020-01-01", "2025-12-31"]))
+    with pytest.raises(ValueError):
+        make_data(_sst_to_2025(), cfg)                      # default period "val": 2020+ must not be accepted
+    d = make_data(_sst_to_2025(), cfg, period="test")       # allowed only when asked for explicitly
+    assert d.dates.max() == pd.Timestamp("2025-12-31")
+
+
+def test_test_period_keeps_training_statistics_and_inputs_only_past():
+    pytest.importorskip("torch")
+    from sst.lstm_data import gather_inputs
+    cfg = dict(CFG, split=dict(CFG["split"], test=["2020-01-01", "2025-12-31"]))
+    full = _sst_to_2025()
+    d_val = make_data(full.sel(time=slice(None, "2019-12-31")), cfg)
+    d_test = make_data(full, cfg, period="test")
+    assert d_val.std == d_test.std                          # standardisation = training years only
+    # inputs of an issue date in 2024 are unchanged if everything after it is replaced by garbage
+    flat = np.array([pd.Timestamp("2024-06-01").to_datetime64()])
+    t = int(np.searchsorted(d_test.dates.values, flat[0]))
+    x1 = gather_inputs(d_test, np.array([t * d_test.n_points + 2]))
+    d_test.a[t + 1:] = 99.0
+    x2 = gather_inputs(d_test, np.array([t * d_test.n_points + 2]))
+    assert np.array_equal(x1, x2)
+
+
+def test_lstm_test_guards_refuse(tmp_path, monkeypatch):
+    pytest.importorskip("torch")
+    import sst.lstm_test as T
+    monkeypatch.setattr(T, "_git", lambda *a: type("R", (), {"returncode": 1, "stdout": ""})())
+    with pytest.raises(SystemExit):
+        T.check_guards()                                    # tag missing -> refuse
