@@ -5,3 +5,4 @@ notes/
 *.nc
 *.log
 .pytest_cache/
+models/

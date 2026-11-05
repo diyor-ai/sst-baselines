@@ -35,3 +35,25 @@ skill: {metric: rmse, formula: "1 - error_model/error_reference", references: [c
 metrics: {primary_acc: temporal, secondary_acc: acc_spatial, weights: "cos(latitude)", groupings: [season, year]}
 missing_pairs: "skipped and counted; all methods must be scored on the same pairs"
 test_policy: "test period (split.test) evaluated exactly once, after git tag pre-test-freeze; no method/parameter change afterwards"
+# ---- LSTM experiment (Part 1: training + VALIDATION only; the test period is never loaded) ----
+# Research question: with the SAME information as Ridge (last 30 days of anomaly at one grid point), does a small
+# nonlinear model (LSTM) beat Ridge and anomaly persistence? Learning experiment, not an ocean forecasting model.
+lstm:
+  seq_len: 30                      # input days t-29..t
+  inputs: "standardised anomaly + sin/cos(day of year) of each input day -> (30, 3)"
+  standardise: "one number per region = std of TRAINING anomalies (1982-2015, harmonics3 climatology)"
+  outputs: "standardised anomaly at t+1, t+7, t+30 (leads_days)"
+  train_samples: "issue dates whose 30-day window AND all three targets lie in split.train"
+  val_samples: "issue dates in split.val whose three targets lie in split.val and whose 30-day history is complete (history may reach into 2015)"
+  samples_per_epoch: 200000        # fixed-size random draw of (grid point, issue date) pairs each epoch; validation uses ALL pairs
+  hidden_sizes: [32, 64]
+  seeds: [0, 1, 2]
+  lr: 0.001
+  batch_size: 1024
+  max_epochs: 30
+  patience: 5                      # early stopping on validation loss (MSE in standardised units, mean over the 3 leads)
+  num_threads: 4                   # torch.set_num_threads
+  # SELECTION RULE (fixed before any run): per region, choose the hidden size H whose MEAN over the 3 seeds of the
+  # overall validation RMSE of forecast SST (cos(lat)-weighted, same metric code as the baselines) is lowest;
+  # computed per lead, and the H with the lowest mean over the 3 leads is chosen (one H per region).
+  selection: "per region: H with the lowest mean (over seeds 0,1,2 and over leads 1,7,30) validation RMSE of SST"
