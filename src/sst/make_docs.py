@@ -176,6 +176,29 @@ def lstm_table(D):
     return head, rows
 
 
+def lstm_hypotheses(D):
+    """Two hypotheses (clearly marked as not tested), each with asserts on the numbers they rest on."""
+    K, S = "kuroshio", "subtropical"
+    ref = lambda r, m: D.lt["regions"][r]["reference"]["30"][m]["overall"]  # noqa: E731
+    for r in D.regions:   # 30 d: lower RMSE than anomaly persistence, but lower ACC than anomaly persistence AND Ridge
+        assert lstm_stat(D, r, "30", "rmse")[0] < ref(r, "anomaly_persistence")["rmse"]
+        assert lstm_stat(D, r, "30", "acc")[0] < ref(r, "anomaly_persistence")["acc"]
+        assert lstm_stat(D, r, "30", "acc")[0] < ref(r, "ridge")["acc"]
+    sd = lambda r, h, test: D.lt["regions"][r]["lstm"]["std"][h]["overall"]["rmse"] if test else D.lv["regions"][r]["lstm"]["64"]["std"][h]["overall"]["rmse"]  # noqa: E731
+    ratio = lambda r, h: sd(r, h, True) / sd(r, h, False)  # noqa: E731
+    assert all(ratio(K, h) > 2.5 for h in LEADS) and ratio(S, "7") > 2 and ratio(S, "1") < 1 and 1 < ratio(S, "30") < 1.5
+    R = lambda r: ", ".join(f"{ratio(r, h):.1f}×" for h in LEADS)  # noqa: E731
+    return [
+        f"**ACC at 30 days (hypothesis, not tested).** At 30 days the LSTM has a lower RMSE than anomaly persistence in both boxes but a *lower* temporal ACC than both anomaly persistence and Ridge "
+        f"(ACC {lstm_stat(D, K, '30', 'acc')[0]:.3f} vs {ref(K, 'anomaly_persistence')['acc']:.3f} / {ref(K, 'ridge')['acc']:.3f} Kuroshio; {lstm_stat(D, S, '30', 'acc')[0]:.3f} vs "
+        f"{ref(S, 'anomaly_persistence')['acc']:.3f} / {ref(S, 'ridge')['acc']:.3f} subtropical). This is consistent with the RMSE gain coming from a damped forecast amplitude (smaller anomalies "
+        "that reduce the squared error) rather than from a better pattern of anomalies; amplitude and pattern were not analysed separately.",
+        f"**Seed spread (hypothesis, not tested).** The std of the RMSE over the three seeds is larger on test than on validation in the Kuroshio box at every lead "
+        f"(test/validation ratio at 1, 7, 30 d: {R(K)}; e.g. 1 d: {sd(K, '1', False):.4f} → {sd(K, '1', True):.4f} °C) and at 7 d in the subtropical box ({ratio(S, '7'):.1f}×), but not at 1 d there "
+        f"({ratio(S, '1'):.1f}×) and only slightly at 30 d ({ratio(S, '30'):.1f}×). A possible explanation is that the test years contain inputs outside the range seen in training (the warm shift), "
+        "where the differently-initialised networks extrapolate differently; this was not tested."]
+
+
 def lstm_facts(D):
     """Prose for the LSTM section; every qualitative claim is guarded by an assert on the numbers."""
     K, S = "kuroshio", "subtropical"
@@ -278,7 +301,7 @@ def readme(D, f):
       "The protocol was written and tagged (`pre-lstm-test`) before the test period was loaded; the test was run once: [`docs/lstm_test_protocol.md`](docs/lstm_test_protocol.md). "
       "Cells: RMSE in °C and skill (1 − RMSE/RMSE_reference), mean ± std over the three seeds (no seed picking, no ensemble). Full scores incl. seasons: `results/lstm_test.json`, `results/lstm_val.json`; run provenance: `results/lstm_manifest.json`.\n")
     A(md_table(*lstm_table(D)) + "\n")
-    for para in lstm_facts(D):
+    for para in lstm_facts(D)[:2] + lstm_hypotheses(D) + lstm_facts(D)[2:]:
         A(para + "\n")
     A("![LSTM learning curves](results/figures/figL1_lstm_curves.png)\n\n*Figure L1. LSTM learning curves (validation period; dot = best epoch).*\n")
     A("## Status")

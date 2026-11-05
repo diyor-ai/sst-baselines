@@ -108,6 +108,10 @@ Question: with the **same information as Ridge** (the last 30 days of anomaly at
 
 **Seasons.** Subtropical: positive vs Ridge in all four seasons at every lead (several within about one std). Kuroshio: mostly negative vs Ridge, worst in DJF at 1 day (-0.143).
 
+**ACC at 30 days (hypothesis, not tested).** At 30 days the LSTM has a lower RMSE than anomaly persistence in both boxes but a *lower* temporal ACC than both anomaly persistence and Ridge (ACC 0.326 vs 0.335 / 0.330 Kuroshio; 0.413 vs 0.442 / 0.436 subtropical). This is consistent with the RMSE gain coming from a damped forecast amplitude (smaller anomalies that reduce the squared error) rather than from a better pattern of anomalies; amplitude and pattern were not analysed separately.
+
+**Seed spread (hypothesis, not tested).** The std of the RMSE over the three seeds is larger on test than on validation in the Kuroshio box at every lead (test/validation ratio at 1, 7, 30 d: 15.7×, 4.1×, 3.0×; e.g. 1 d: 0.0005 → 0.0071 °C) and at 7 d in the subtropical box (2.2×), but not at 1 d there (0.6×) and only slightly at 30 d (1.2×). A possible explanation is that the test years contain inputs outside the range seen in training (the warm shift), where the differently-initialised networks extrapolate differently; this was not tested.
+
 **Fairness caveat.** The LSTM gets the full 30-day sequence plus sin/cos of the day of year; Ridge gets lags 0–6 and the 30-day mean and no day of year, so part of any LSTM gain may come from the extra inputs, not from the nonlinear model (not tested). Validation and test used slightly different pair conventions (see the protocol). This is a learning experiment, not an ocean forecasting model, and the Kuroshio and subtropical results disagree, so no general claim is made.
 
 ![LSTM learning curves](results/figures/figL1_lstm_curves.png)
