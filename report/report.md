@@ -30,9 +30,19 @@
 3. **Plain persistence fails at 30 days, and the warm shift hurts climatology-based forecasts.** Persistence at 30 d has skill -0.817 (Kuroshio) and -0.597 (subtropical) relative to anomaly persistence. Against the 1982–2015 climatology the test years are warm: mean bias of the climatology forecast is -0.827 °C (Kuroshio) and -0.656 °C (subtropical); Ridge at 30 d is also biased low (-0.442, -0.287 °C).
 4. **The ranking changed between validation and test.** Methods that relax towards the 1982–2015 climatology (Ridge, damped persistence) beat anomaly persistence on validation but lost much or all of that advantage on test. Skill vs anomaly persistence at 1, 7, 30 d, validation → test: Ridge Kuroshio +0.041, +0.077, +0.176 → +0.025, +0.007, +0.088; Ridge subtropical +0.022, +0.056, +0.090 → -0.049, -0.049, +0.006; damped persistence Kuroshio +0.010, +0.067, +0.164 → -0.017, -0.012, +0.058; damped persistence subtropical -0.004, -0.017, +0.028 → -0.109, -0.178, -0.091 (negative at every test lead). This is consistent with a larger warm shift in the test years: the climatology forecast's bias is -0.500 / -0.539 °C on validation but -0.827 / -0.656 °C on test (Kuroshio / subtropical), and the 30-day bias of damped persistence goes from -0.324 / -0.325 to -0.527 / -0.392 °C. It is not shown here that the warm shift is the cause.
 
+**LSTM (added after the baselines).** Same inputs as Ridge (30 days of anomaly at one grid point); one LSTM per region, 3 seeds, protocol tagged before the test and run once. RMSE in °C (skill vs Ridge, mean ± std over seeds; validation in brackets).
+
+| LSTM | Kuroshio 1 d | Kuroshio 7 d | Kuroshio 30 d | Subtropical 1 d | Subtropical 7 d | Subtropical 30 d |
+|---|---|---|---|---|---|---|
+| RMSE (skill vs Ridge) | 0.266 (-0.061) [-0.001] | 0.852 (-0.017) [+0.006] | 1.283 (-0.001) [+0.014] | 0.124 (+0.029) [-0.006] | 0.361 (+0.025) [+0.026] | 0.556 (+0.022) [+0.045] |
+
+**Result (test, H = 64, mean ± std over seeds 0, 1, 2).** The LSTM does **not** beat Ridge in the Kuroshio box (skill vs Ridge -0.061, -0.017, -0.001 at 1, 7, 30 d; on validation it had been -0.001, +0.006, +0.014, so the 7- and 30-day gains did not hold). In the subtropical box it beats Ridge at every lead (skill +0.029, +0.025, +0.022; validation -0.006, +0.026, +0.045), but Ridge itself is worse than anomaly persistence at 1 and 7 days there, and the LSTM does not beat anomaly persistence at those leads either (skill vs anomaly persistence -0.018, -0.023, +0.027; Kuroshio -0.034, -0.010, +0.087). At 30 days the LSTM is better than anomaly persistence in both boxes. ACC at 30 d is slightly lower than that of anomaly persistence in both boxes.
+
+**Fairness caveat.** The LSTM gets the full 30-day sequence plus sin/cos of the day of year; Ridge gets lags 0–6 and the 30-day mean and no day of year, so part of any LSTM gain may come from the extra inputs, not from the nonlinear model (not tested). Validation and test used slightly different pair conventions (see the protocol). This is a learning experiment, not an ocean forecasting model, and the Kuroshio and subtropical results disagree, so no general claim is made.
+
 **Limitations.** Two small regions; simple statistical baselines; OISST is a smooth interpolated analysis; hybrid ERDDAP + PSL data (verified on overlaps); v2/v2.1 label change at 2016; warm shift vs the 1982–2015 climatology, not detrended; Ridge ignores spatial structure; its alpha sits at the grid's lower edge in several cases; one fixed split.
 
-**Next step.** Optionally a small LSTM under the same protocol (reference: Hao et al. 2025, IEEE Trans. Cybernetics 55(6), review). Code and data checks: `README.md`, `results/*.json`.
+Code, protocol (`docs/lstm_test_protocol.md`) and data checks: `README.md`, `results/*.json`. Reference for deep learning in ocean forecasting: Hao et al. 2025 (review).
 
 **References**
 

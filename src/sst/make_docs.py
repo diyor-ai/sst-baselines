@@ -33,6 +33,7 @@ class Data:
         self.qc = J("qc_kuroshio.json")
         self.psl, self.samples = J("psl_validation.json"), J("psl_version_samples.json")
         self.regions = list(self.test["regions"])
+        self.lv, self.lt = J("lstm_val.json"), J("lstm_test.json")   # LSTM validation / test (added after the baselines)
 
     def rmse(self, d, r, h, m):
         return d["regions"][r][h]["methods"][m]["overall"]["rmse"]
@@ -150,6 +151,59 @@ FIGS = [("results/figures/fig1_regions.png", "Figure 1. Mean SST and standard de
         ("results/figures/figS1_area_mean_anomaly.png", "Figure S1. Area-mean anomaly vs the 1982–2015 climatology; the validation period is shaded.")]
 
 
+# ---- LSTM experiment (added after the baseline test run; protocol docs/lstm_test_protocol.md, tag pre-lstm-test) ----
+def lstm_stat(D, r, h, key, test=True):
+    """(mean, std) over seeds of an LSTM score: key in rmse, acc, skill_ap, skill_ridge."""
+    blk = D.lt["regions"][r]["lstm"] if test else D.lv["regions"][r]["lstm"]["64"]
+    m, s = blk["mean"][h], blk["std"][h]
+    if key in ("rmse", "acc"):
+        return m["overall"][key], s["overall"][key]
+    k = {"skill_ap": "skill_vs_anomaly_persistence", "skill_ridge": "skill_vs_ridge"}[key]
+    return m[k]["overall"], s[k]["overall"]
+
+
+def lstm_table(D):
+    head = ["Region, lead", "AP RMSE", "Ridge RMSE", "LSTM RMSE (mean±std)", "ACC AP / Ridge / LSTM", "Skill vs AP", "Skill vs Ridge", "Skill vs Ridge (validation)"]
+    rows = []
+    for r in D.regions:
+        for h in LEADS:
+            ref = D.lt["regions"][r]["reference"][h]
+            ap, rd = ref["anomaly_persistence"]["overall"], ref["ridge"]["overall"]
+            (a, sa), (c, sc), (e, se) = lstm_stat(D, r, h, "rmse"), lstm_stat(D, r, h, "skill_ap"), lstm_stat(D, r, h, "skill_ridge")
+            (acc, sacc), (v, sv) = lstm_stat(D, r, h, "acc"), lstm_stat(D, r, h, "skill_ridge", test=False)
+            rows.append([f"{r.capitalize()} {h} d", f3(ap["rmse"]), f3(rd["rmse"]), f"{f3(a)} ± {sa:.3f}",
+                         f"{ap['acc']:.3f} / {rd['acc']:.3f} / {acc:.3f} ± {sacc:.3f}", f"{sg(c)} ± {sc:.3f}", f"{sg(e)} ± {se:.3f}", f"{sg(v)} ± {sv:.3f}"])
+    return head, rows
+
+
+def lstm_facts(D):
+    """Prose for the LSTM section; every qualitative claim is guarded by an assert on the numbers."""
+    K, S = "kuroshio", "subtropical"
+    sr = lambda r, h: lstm_stat(D, r, h, "skill_ridge")[0]  # noqa: E731
+    sa = lambda r, h: lstm_stat(D, r, h, "skill_ap")[0]  # noqa: E731
+    svr = lambda r, h: lstm_stat(D, r, h, "skill_ridge", test=False)[0]  # noqa: E731
+    assert all(sr(K, h) < 0 for h in LEADS)                       # Kuroshio: LSTM never beats Ridge on test
+    assert all(sr(S, h) > 0 for h in LEADS)                       # subtropical: LSTM better than Ridge at every lead
+    assert sa(S, "1") < 0 and sa(S, "7") < 0 and sa(S, "30") > 0 and sa(K, "30") > 0 and sa(K, "1") < 0 and sa(K, "7") < 0
+    assert svr(K, "7") > 0 and svr(K, "30") > 0 and svr(K, "1") < 0 and svr(S, "1") < 0   # validation signs quoted below
+    assert all(lstm_stat(D, r, "30", "acc")[0] < D.lt["regions"][r]["reference"]["30"]["anomaly_persistence"]["overall"]["acc"] for r in D.regions)
+    L = lambda r: ", ".join(sg(sr(r, h)) for h in LEADS)  # noqa: E731
+    V = lambda r: ", ".join(sg(svr(r, h)) for h in LEADS)  # noqa: E731
+    A = lambda r: ", ".join(sg(sa(r, h)) for h in LEADS)  # noqa: E731
+    seas = lambda r, h, g: D.lt["regions"][r]["lstm"]["mean"][h]["skill_vs_ridge"]["by_season"][g]  # noqa: E731
+    assert all(seas(S, h, g) > 0 for h in LEADS for g in ("DJF", "MAM", "JJA", "SON"))
+    return [
+        f"**Result (test, H = 64, mean ± std over seeds 0, 1, 2).** The LSTM does **not** beat Ridge in the Kuroshio box (skill vs Ridge {L(K)} at 1, 7, 30 d; "
+        f"on validation it had been {V(K)}, so the 7- and 30-day gains did not hold). In the subtropical box it beats Ridge at every lead (skill {L(S)}; validation {V(S)}), "
+        f"but Ridge itself is worse than anomaly persistence at 1 and 7 days there, and the LSTM does not beat anomaly persistence at those leads either "
+        f"(skill vs anomaly persistence {A(S)}; Kuroshio {A(K)}). At 30 days the LSTM is better than anomaly persistence in both boxes. ACC at 30 d is slightly lower than that of anomaly persistence in both boxes.",
+        f"**Seasons.** Subtropical: positive vs Ridge in all four seasons at every lead (several within about one std). Kuroshio: mostly negative vs Ridge, "
+        f"worst in DJF at 1 day ({sg(seas(K, '1', 'DJF'))}).",
+        "**Fairness caveat.** The LSTM gets the full 30-day sequence plus sin/cos of the day of year; Ridge gets lags 0–6 and the 30-day mean and no day of year, so part of any LSTM "
+        "gain may come from the extra inputs, not from the nonlinear model (not tested). Validation and test used slightly different pair conventions (see the protocol). "
+        "This is a learning experiment, not an ocean forecasting model, and the Kuroshio and subtropical results disagree, so no general claim is made."]
+
+
 def readme(D, f):
     cfg = D.cfg
     t, K, S = D.test, "kuroshio", "subtropical"
@@ -218,10 +272,19 @@ def readme(D, f):
     A("### Figures\n")
     for path, cap in FIGS:
         A(f"![{cap}]({path})\n\n*{cap}*\n")
+    A("## LSTM experiment (added after the baselines; the findings above are unchanged)")
+    A("Question: with the **same information as Ridge** (the last 30 days of anomaly at one grid point), does a small LSTM forecast better than Ridge and anomaly persistence? "
+      "One LSTM per region (1 layer, hidden size chosen on validation: 64 in both regions, 3 seeds), trained on 1982–2015 only, early stopping on 2016–2019. "
+      "The protocol was written and tagged (`pre-lstm-test`) before the test period was loaded; the test was run once: [`docs/lstm_test_protocol.md`](docs/lstm_test_protocol.md). "
+      "Cells: RMSE in °C and skill (1 − RMSE/RMSE_reference), mean ± std over the three seeds (no seed picking, no ensemble). Full scores incl. seasons: `results/lstm_test.json`, `results/lstm_val.json`; run provenance: `results/lstm_manifest.json`.\n")
+    A(md_table(*lstm_table(D)) + "\n")
+    for para in lstm_facts(D):
+        A(para + "\n")
+    A("![LSTM learning curves](results/figures/figL1_lstm_curves.png)\n\n*Figure L1. LSTM learning curves (validation period; dot = best epoch).*\n")
     A("## Status")
     A(f"Validation and test evaluation complete. The test period was evaluated once (commit `{f['commit'][:7]}`, tag `pre-test-freeze`, "
       f"started {f['run_utc']}). **Post-test changes:** none to methods or parameters. After the test run only figure and documentation code "
-      "was added (fig 2 / fig 3 layout, this README, the report). **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box "
+      "was added (fig 2 / fig 3 layout, this README, the report). The LSTM test was then run once under its own pre-registered protocol (commit `" + D.lt["run"]["commit"][:7] + "`, tag `pre-lstm-test`, started " + D.lt["run"]["started_utc"] + "); the baseline results were not changed. **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box "
       "is 0.262 °C, so \"all anomaly-based methods\" was wrong), added the validation-to-test ranking-change finding, the data-availability note, the references and the report header; "
       "no method, parameter or score changed.\n")
     A("## Limitations")
@@ -244,6 +307,7 @@ def readme(D, f):
       "python -m sst.figures                   # figure 1 + results/region_stats.json\npython -m sst.run_val_all               # validation: all baselines + Ridge, bias, alphas\n"
       "python -m sst.figures2                  # validation fig 2 + fig S1\n# freeze: commit config.yaml + src, then: git tag pre-test-freeze\n"
       "python -m sst.run_test                  # test period, ONCE (guarded)\npython -m sst.figures2 test             # test fig 2 + fig 3\n"
+      "python -m sst.lstm_train --all --jobs 4   # LSTM: 12 runs (validation only)\npython -m sst.lstm_manifest             # run provenance\npython -m sst.lstm_eval                 # LSTM validation scores + learning curves\n# commit, then: git tag pre-lstm-test\npython -m sst.lstm_test                 # LSTM test period, ONCE (guarded)\n"
       "python -m sst.make_docs                 # README.md + report/report.md/.html from results/*.json\n"
       "soffice --headless --convert-to pdf --outdir report report/report.html   # report.pdf\n"
       "python report/methods_example.py && python report/build_methods_note.py   # methods note (then soffice as above on report/methods_note.html)\npytest                                  # synthetic tests\n```\n")
@@ -276,10 +340,15 @@ def report_blocks(D, f):
          ("img", "results/figures/fig2_test_leads.png", "Figure: test RMSE and skill by lead."),
          ("p", "**Key findings.**"),
          ("ol", [f"**{h}** {b}" for h, b in fi]),
+         ("p", "**LSTM (added after the baselines).** Same inputs as Ridge (30 days of anomaly at one grid point); one LSTM per region, 3 seeds, protocol tagged before the test and run once. "
+               "RMSE in °C (skill vs Ridge, mean ± std over seeds; validation in brackets)."),
+         ("table", ["LSTM", "Kuroshio 1 d", "Kuroshio 7 d", "Kuroshio 30 d", "Subtropical 1 d", "Subtropical 7 d", "Subtropical 30 d"],
+          [["RMSE (skill vs Ridge)"] + [f"{lstm_stat(D, r, h, 'rmse')[0]:.3f} ({sg(lstm_stat(D, r, h, 'skill_ridge')[0])}) [{sg(lstm_stat(D, r, h, 'skill_ridge', test=False)[0])}]" for r in D.regions for h in LEADS]]),
+         ("p", lstm_facts(D)[0]),
+         ("p", lstm_facts(D)[2]),
          ("p", "**Limitations.** Two small regions; simple statistical baselines; OISST is a smooth interpolated analysis; hybrid ERDDAP + PSL data (verified on overlaps); "
                "v2/v2.1 label change at 2016; warm shift vs the 1982–2015 climatology, not detrended; Ridge ignores spatial structure; its alpha sits at the grid's lower edge in several cases; one fixed split."),
-         ("p", "**Next step.** Optionally a small LSTM under the same protocol (reference: Hao et al. 2025, IEEE Trans. Cybernetics 55(6), review). "
-               "Code and data checks: `README.md`, `results/*.json`."),
+         ("p", "Code, protocol (`docs/lstm_test_protocol.md`) and data checks: `README.md`, `results/*.json`. Reference for deep learning in ocean forecasting: Hao et al. 2025 (review)."),
          ("refs", REFS),
          ("p", "*Code written with Claude Code; methodology, decisions and verification by the author.*")]
     return B
@@ -309,12 +378,12 @@ def render_report(blocks):
         elif k == "ol":
             md.append("\n".join(f"{i}. {x}" for i, x in enumerate(b[1], 1)) + "\n")
             ht.append("<ol>" + "".join(f"<li>{inline(x)}</li>" for x in b[1]) + "</ol>")
-    css = ("<style>@page{size:21cm 29.7cm;margin:1.0cm}body{font-family:'DejaVu Sans',Arial;font-size:7.2pt}"
+    css = ("<style>@page{size:21cm 29.7cm;margin:1.0cm}body{font-family:'DejaVu Sans',Arial;font-size:6.9pt}"
            "h1{font-size:11pt;margin:0 0 3pt 0}p{margin:0 0 3pt 0}td,th{font-size:6pt}ol{margin:0 0 3pt 0}li{margin:0}ol.r li{font-size:6pt}</style>")
     return "\n".join(md), f"<html><head><meta charset='utf-8'>{css}</head><body>" + "\n".join(ht) + "</body></html>"
 
 
-IMG_PX = 400
+IMG_PX = 240
 
 
 def main():

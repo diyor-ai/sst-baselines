@@ -92,8 +92,30 @@ Cells: RMSE in °C (skill vs anomaly persistence, unitless; 0 for anomaly persis
 
 *Figure S1. Area-mean anomaly vs the 1982–2015 climatology; the validation period is shaded.*
 
+## LSTM experiment (added after the baselines; the findings above are unchanged)
+Question: with the **same information as Ridge** (the last 30 days of anomaly at one grid point), does a small LSTM forecast better than Ridge and anomaly persistence? One LSTM per region (1 layer, hidden size chosen on validation: 64 in both regions, 3 seeds), trained on 1982–2015 only, early stopping on 2016–2019. The protocol was written and tagged (`pre-lstm-test`) before the test period was loaded; the test was run once: [`docs/lstm_test_protocol.md`](docs/lstm_test_protocol.md). Cells: RMSE in °C and skill (1 − RMSE/RMSE_reference), mean ± std over the three seeds (no seed picking, no ensemble). Full scores incl. seasons: `results/lstm_test.json`, `results/lstm_val.json`; run provenance: `results/lstm_manifest.json`.
+
+| Region, lead | AP RMSE | Ridge RMSE | LSTM RMSE (mean±std) | ACC AP / Ridge / LSTM | Skill vs AP | Skill vs Ridge | Skill vs Ridge (validation) |
+|---|---|---|---|---|---|---|---|
+| Kuroshio 1 d | 0.258 | 0.251 | 0.266 ± 0.007 | 0.977 / 0.978 / 0.978 ± 0.000 | -0.034 ± 0.027 | -0.061 ± 0.028 | -0.001 ± 0.001 |
+| Kuroshio 7 d | 0.843 | 0.838 | 0.852 ± 0.008 | 0.761 / 0.752 / 0.753 ± 0.003 | -0.010 ± 0.010 | -0.017 ± 0.010 | +0.006 ± 0.002 |
+| Kuroshio 30 d | 1.405 | 1.281 | 1.283 ± 0.010 | 0.335 / 0.330 / 0.326 ± 0.004 | +0.087 ± 0.007 | -0.001 ± 0.008 | +0.014 ± 0.003 |
+| Subtropical 1 d | 0.122 | 0.128 | 0.124 ± 0.000 | 0.972 / 0.972 / 0.972 ± 0.000 | -0.018 ± 0.004 | +0.029 ± 0.004 | -0.006 ± 0.004 |
+| Subtropical 7 d | 0.353 | 0.370 | 0.361 ± 0.005 | 0.783 / 0.769 / 0.768 ± 0.006 | -0.023 ± 0.014 | +0.025 ± 0.013 | +0.026 ± 0.005 |
+| Subtropical 30 d | 0.571 | 0.568 | 0.556 ± 0.006 | 0.442 / 0.436 / 0.413 ± 0.020 | +0.027 ± 0.010 | +0.022 ± 0.010 | +0.045 ± 0.008 |
+
+**Result (test, H = 64, mean ± std over seeds 0, 1, 2).** The LSTM does **not** beat Ridge in the Kuroshio box (skill vs Ridge -0.061, -0.017, -0.001 at 1, 7, 30 d; on validation it had been -0.001, +0.006, +0.014, so the 7- and 30-day gains did not hold). In the subtropical box it beats Ridge at every lead (skill +0.029, +0.025, +0.022; validation -0.006, +0.026, +0.045), but Ridge itself is worse than anomaly persistence at 1 and 7 days there, and the LSTM does not beat anomaly persistence at those leads either (skill vs anomaly persistence -0.018, -0.023, +0.027; Kuroshio -0.034, -0.010, +0.087). At 30 days the LSTM is better than anomaly persistence in both boxes. ACC at 30 d is slightly lower than that of anomaly persistence in both boxes.
+
+**Seasons.** Subtropical: positive vs Ridge in all four seasons at every lead (several within about one std). Kuroshio: mostly negative vs Ridge, worst in DJF at 1 day (-0.143).
+
+**Fairness caveat.** The LSTM gets the full 30-day sequence plus sin/cos of the day of year; Ridge gets lags 0–6 and the 30-day mean and no day of year, so part of any LSTM gain may come from the extra inputs, not from the nonlinear model (not tested). Validation and test used slightly different pair conventions (see the protocol). This is a learning experiment, not an ocean forecasting model, and the Kuroshio and subtropical results disagree, so no general claim is made.
+
+![LSTM learning curves](results/figures/figL1_lstm_curves.png)
+
+*Figure L1. LSTM learning curves (validation period; dot = best epoch).*
+
 ## Status
-Validation and test evaluation complete. The test period was evaluated once (commit `0aacc83`, tag `pre-test-freeze`, started 2026-11-02T06:30:47Z). **Post-test changes:** none to methods or parameters. After the test run only figure and documentation code was added (fig 2 / fig 3 layout, this README, the report). **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box is 0.262 °C, so "all anomaly-based methods" was wrong), added the validation-to-test ranking-change finding, the data-availability note, the references and the report header; no method, parameter or score changed.
+Validation and test evaluation complete. The test period was evaluated once (commit `0aacc83`, tag `pre-test-freeze`, started 2026-11-02T06:30:47Z). **Post-test changes:** none to methods or parameters. After the test run only figure and documentation code was added (fig 2 / fig 3 layout, this README, the report). The LSTM test was then run once under its own pre-registered protocol (commit `dbf5ab3`, tag `pre-lstm-test`, started 2026-11-05T04:52:05Z); the baseline results were not changed. **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box is 0.262 °C, so "all anomaly-based methods" was wrong), added the validation-to-test ranking-change finding, the data-availability note, the references and the report header; no method, parameter or score changed.
 
 ## Limitations
 - Two small regions, one product (OISST); results may not transfer elsewhere.
@@ -122,6 +144,11 @@ python -m sst.figures2                  # validation fig 2 + fig S1
 # freeze: commit config.yaml + src, then: git tag pre-test-freeze
 python -m sst.run_test                  # test period, ONCE (guarded)
 python -m sst.figures2 test             # test fig 2 + fig 3
+python -m sst.lstm_train --all --jobs 4   # LSTM: 12 runs (validation only)
+python -m sst.lstm_manifest             # run provenance
+python -m sst.lstm_eval                 # LSTM validation scores + learning curves
+# commit, then: git tag pre-lstm-test
+python -m sst.lstm_test                 # LSTM test period, ONCE (guarded)
 python -m sst.make_docs                 # README.md + report/report.md/.html from results/*.json
 soffice --headless --convert-to pdf --outdir report report/report.html   # report.pdf
 python report/methods_example.py && python report/build_methods_note.py   # methods note (then soffice as above on report/methods_note.html)
