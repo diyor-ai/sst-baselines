@@ -46,6 +46,20 @@ def update_manifest_halo(key, entry):
     tmp.rename(MANIFEST)
 
 
+# PSL answers 429 when pushed (seen on 2026-11-08 at 1992-12): more retries and a longer pause after every request.
+# Still one request at a time, each month fetched twice in sequence; only the politeness changes, not the checks.
+fl.MAX_RETRIES = 8
+_psl_slice = fl.psl_slice
+
+
+def _polite_psl_slice(*a, **k):
+    out = _psl_slice(*a, **k)
+    time.sleep(5)
+    return out
+
+
+fl.psl_slice = _polite_psl_slice
+
 # the shared helpers write their manifest entries through a module-level name; point it at the halo manifest
 dl.update_manifest = update_manifest_halo
 fl.update_manifest = update_manifest_halo
