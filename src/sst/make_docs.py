@@ -546,12 +546,12 @@ def render_report(blocks):
         elif k == "ol":
             md.append("\n".join(f"{i}. {x}" for i, x in enumerate(b[1], 1)) + "\n")
             ht.append("<ol>" + "".join(f"<li>{inline(x)}</li>" for x in b[1]) + "</ol>")
-    css = ("<style>@page{size:21cm 29.7cm;margin:1.0cm}body{font-family:'DejaVu Sans',Arial;font-size:6.4pt}"
+    css = ("<style>@page{size:21cm 29.7cm;margin:1.0cm}body{font-family:'DejaVu Sans',Arial;font-size:6.9pt}"
            "h1{font-size:11pt;margin:0 0 3pt 0}p{margin:0 0 3pt 0}td,th{font-size:6pt}ol{margin:0 0 3pt 0}li{margin:0}ol.r li{font-size:6pt}</style>")
     return "\n".join(md), f"<html><head><meta charset='utf-8'>{css}</head><body>" + "\n".join(ht) + "</body></html>"
 
 
-IMG_PX = 200
+IMG_PX = 240
 
 
 def main():
