@@ -34,6 +34,8 @@ class Data:
         self.psl, self.samples = J("psl_validation.json"), J("psl_version_samples.json")
         self.regions = list(self.test["regions"])
         self.lv, self.lt = J("lstm_val.json"), J("lstm_test.json")   # LSTM validation / test (added after the baselines)
+        self.bv, self.bt = J("b1_val.json"), J("b1_test.json")       # B1 spatial context: validation / test (added after the LSTM)
+        self.bm, self.bh = J("b1_manifest.json"), J("halo_checks.json")
 
     def rmse(self, d, r, h, m):
         return d["regions"][r][h]["methods"][m]["overall"]["rmse"]
@@ -227,6 +229,124 @@ def lstm_facts(D):
         "This is a learning experiment, not an ocean forecasting model, and the Kuroshio and subtropical results disagree, so no general claim is made."]
 
 
+# ---- B1 spatial context (added after the LSTM test; protocols docs/b1_spatial_protocol.md, docs/b1_test_protocol.md, tag pre-b1-test) ----
+def b1_ref(D, r, h, m, test=True):
+    return (D.bt if test else D.bv)["regions"][r]["reference"][h][m]
+
+
+def b1_lstm(D, r, h, key, test=True):
+    """(mean, std) over seeds of LSTM-patch: key in rmse, acc, skill_ridge, skill_ap, skill_rp (vs Ridge-patch)."""
+    blk = (D.bt if test else D.bv)["regions"][r]["lstm_patch"]
+    m, s = blk["mean"][h], blk["std"][h]
+    if key in ("rmse", "acc"):
+        return m["overall"][key], s["overall"][key]
+    k = {"skill_ap": "skill_vs_anomaly_persistence", "skill_ridge": "skill_vs_ridge", "skill_rp": "skill_vs_ridge_patch"}[key]
+    return m[k]["overall"], s[k]["overall"]
+
+
+def b1_rp_skill(D, r, h, test=True):
+    """Ridge-patch skill vs Ridge (and Ridge+doy vs Ridge) overall RMSE skill."""
+    return b1_ref(D, r, h, "ridge_patch", test)["skill_vs_ridge"]["overall"]
+
+
+def b1_tables(D):
+    pm = lambda a, b: f"{f3(a)} ± {b:.3f}"  # noqa: E731
+    h1 = ["Region, lead", "Anom. persistence", "Ridge", "Ridge+doy", "Ridge-patch", "LSTM (point)", "LSTM-patch"]
+    h2 = ["Region, lead", "Ridge+doy vs Ridge", "Ridge-patch vs Ridge [val]", "LSTM-patch vs Ridge [val]", "LSTM-patch vs Ridge-patch [val]", "LSTM-patch vs AP"]
+    h3 = ["Region, lead", "AP", "Ridge", "Ridge+doy", "Ridge-patch", "LSTM (point)", "LSTM-patch"]
+    r1, r2, r3 = [], [], []
+    for r in D.regions:
+        for h in LEADS:
+            n = f"{r.capitalize()} {h} d"
+            o = D.lt["regions"][r]["lstm"]
+            r1.append([n] + [f3(b1_ref(D, r, h, m)["overall"]["rmse"]) for m in ("anomaly_persistence", "ridge", "ridge_doy", "ridge_patch")]
+                      + [pm(o["mean"][h]["overall"]["rmse"], o["std"][h]["overall"]["rmse"]), pm(*b1_lstm(D, r, h, "rmse"))])
+            sk = lambda key, t=True: b1_lstm(D, r, h, key, t)  # noqa: E731
+            r2.append([n, sg(b1_ref(D, r, h, "ridge_doy")["skill_vs_ridge"]["overall"]),
+                       f"{sg(b1_rp_skill(D, r, h))} [{sg(b1_rp_skill(D, r, h, False))}]",
+                       f"{sg(sk('skill_ridge')[0])} ± {sk('skill_ridge')[1]:.3f} [{sg(sk('skill_ridge', False)[0])}]",
+                       f"{sg(sk('skill_rp')[0])} ± {sk('skill_rp')[1]:.3f} [{sg(sk('skill_rp', False)[0])}]",
+                       f"{sg(sk('skill_ap')[0])} ± {sk('skill_ap')[1]:.3f}"])
+            r3.append([n] + [f"{b1_ref(D, r, h, m)['overall']['acc']:.3f}" for m in ("anomaly_persistence", "ridge", "ridge_doy", "ridge_patch")]
+                      + [f"{o['mean'][h]['overall']['acc']:.3f}", pm(*b1_lstm(D, r, h, "acc"))])
+    return (h1, r1), (h2, r2), (h3, r3)
+
+
+def b1_facts(D):
+    """Prose for the B1 section; every qualitative claim is guarded by an assert on the numbers."""
+    K, S = "kuroshio", "subtropical"
+    seas = ("DJF", "MAM", "JJA", "SON")
+    # data checks
+    for r in D.bh.values():
+        assert r["days"] == 16071 and r["grid_shape"] == [48, 48] and r["nan_values_total"] == 0
+        assert r["sst_equal_bitwise_incl_nan"] and r["source_equal"] and r["halo_points"] == 704
+    assert D.bt["run"]["dry_run"] is False and D.bt["run"]["tag"] == "pre-b1-test"
+    # (a) doy alone does nothing; linear patch gain holds
+    assert all(abs(b1_ref(D, r, h, "ridge_doy", t)["skill_vs_ridge"]["overall"]) < 5e-4 for r in D.regions for h in LEADS for t in (True, False))
+    assert all(b1_rp_skill(D, r, h) > 0 for r in D.regions for h in LEADS)
+    assert all(b1_rp_skill(D, r, h) > 0 for r in D.regions for h in ("7", "30")) and all(b1_rp_skill(D, r, h, False) > 0 for r in D.regions for h in ("7", "30"))
+    assert all(abs(b1_rp_skill(D, r, h) - b1_rp_skill(D, r, h, False)) < 0.01 for r in D.regions for h in ("7", "30"))   # "similar size"
+    ap = lambda r, h, m: 1 - b1_ref(D, r, h, m)["overall"]["rmse"] / b1_ref(D, r, h, "anomaly_persistence")["overall"]["rmse"]  # noqa: E731
+    assert all(ap(K, h, "ridge_patch") > 0 for h in LEADS) and ap(S, "1", "ridge_patch") < 0 and ap(S, "7", "ridge_patch") < 0 and ap(S, "30", "ridge_patch") > 0
+    # (b) LSTM-patch vs Ridge-patch
+    rp = lambda r, h: b1_lstm(D, r, h, "skill_rp")  # noqa: E731
+    assert rp(S, "7")[0] > 2 * rp(S, "7")[1] > 0 and rp(S, "30")[0] > 2 * rp(S, "30")[1] > 0
+    assert all(D.bt["regions"][S]["lstm_patch"]["per_seed"][k][h]["skill_vs_ridge_patch"]["overall"] > 0 for k in "012" for h in ("7", "30"))
+    assert all(rp(K, h)[0] < 0 for h in ("1", "7")) and abs(rp(K, "30")[0]) < rp(K, "30")[1]
+    sg30 = [D.bt["regions"][K]["lstm_patch"]["per_seed"][k]["30"]["skill_vs_ridge_patch"]["overall"] for k in "012"]
+    assert min(sg30) < 0 < max(sg30)                                                                                    # seeds of both signs
+    assert all(D.bt["regions"][r]["lstm_patch"]["per_seed"][k]["1"]["skill_vs_ridge_patch"]["overall"] < 0 for r in D.regions for k in "012")
+    # (c) validation vs test
+    assert all(rp(S, h, ) is not None for h in LEADS) and all(b1_lstm(D, S, h, "skill_ridge", False)[0] > 0.05 for h in ("7", "30"))
+    assert all(abs(b1_lstm(D, S, h, "skill_ridge")[0] - b1_lstm(D, S, h, "skill_ridge", False)[0]) < 0.01 for h in ("7", "30"))
+    assert all(b1_lstm(D, K, h, "skill_rp", False)[0] > 0 for h in ("7", "30")) and all(rp(K, h)[0] < 0 for h in ("7", "30"))
+    assert b1_lstm(D, K, "1", "skill_ridge")[0] < -0.1 and b1_lstm(D, K, "1", "skill_ridge", False)[0] > -0.02
+    # LSTM-patch vs LSTM (point)
+    assert all(b1_lstm(D, r, h, "rmse")[0] < D.lt["regions"][r]["lstm"]["mean"][h]["overall"]["rmse"] for r in D.regions for h in ("7", "30"))
+    assert all(b1_lstm(D, r, "1", "rmse")[0] > D.lt["regions"][r]["lstm"]["mean"]["1"]["overall"]["rmse"] for r in D.regions)
+    # seasons
+    sl = lambda r, h: D.bt["regions"][r]["reference"][h]["ridge_patch"]["skill_vs_ridge"]["by_season"]  # noqa: E731
+    assert all(sl(r, h)[g] > 0 for r in D.regions for h in ("7", "30") for g in seas if not (r == K and h == "7" and g == "DJF")) and sl(K, "7")["DJF"] < 0
+    lp = lambda r, h: D.bt["regions"][r]["lstm_patch"]["mean"][h]["skill_vs_ridge_patch"]["by_season"]  # noqa: E731
+    assert all(lp(S, h)[g] > 0 for h in ("7", "30") for g in seas) and sum(lp(K, "30")[g] > 0 for g in seas) == 1 and lp(K, "30")["DJF"] > 0
+    sd_k1 = D.bt["regions"][K]["lstm_patch"]["std"]["1"]["overall"]["rmse"]
+    sk = lambda r, h, f_=sg: f_(b1_lstm(D, r, h, "skill_rp")[0])  # noqa: E731
+    P = lambda r, h: f"{sg(b1_lstm(D, r, h, 'skill_rp')[0])} ± {b1_lstm(D, r, h, 'skill_rp')[1]:.3f}"  # noqa: E731
+    V = lambda r, h: sg(b1_lstm(D, r, h, "skill_rp", False)[0])  # noqa: E731
+    R = lambda r, test=True: ", ".join(sg(b1_rp_skill(D, r, h, test)) for h in LEADS)  # noqa: E731
+    return [
+        f"**Inputs and models.** The 40×40 boxes were extended by a 1° halo (4 grid points per side, 48×48 grids; same ERDDAP + PSL pipeline and checks; 16,071 days, no missing/land point, "
+        f"the inner 40×40 equals the earlier files bit for bit: `results/halo_checks.json`). Targets and scoring stay on the inner 40×40 and use the same pairs as before; the halo only provides inputs. "
+        f"A patch is the 5×5 block of grid points centred on the target point. **Ridge+doy** = the existing Ridge features plus sin/cos of the day of year; **Ridge-patch** = lags 0–6 and the 30-day mean at each of the 25 patch points plus sin/cos of the day of year (202 features); "
+        f"**LSTM-patch** = the earlier LSTM (H = 64, same training settings, seeds 0, 1, 2) with the 25 patch anomalies plus sin/cos of the day of year as input of every day (30 × 27). All fitted on 1982–2015, "
+        f"ridge alphas and LSTM early stopping chosen on 2016–2019; these models were tested once (commit `{D.bt['run']['commit'][:7]}`, tag `pre-b1-test`, started {D.bt['run']['started_utc']}). "
+        f"Anomaly persistence and Ridge were recomputed on the test pairs and equal the frozen `results/test_all.json`; the weights hashes equal `results/b1_manifest.json`. LSTM (point) is the frozen test result of the previous section.",
+        f"**Did the linear patch gain hold?** Yes. The day of year alone does nothing for Ridge (skill of Ridge+doy vs Ridge within ±0.0005 in all six cells, on validation and on test). Ridge-patch beats Ridge in all six test cells "
+        f"(skill vs Ridge Kuroshio {R(K)}, subtropical {R(S)} at 1, 7, 30 d; validation {R(K, False)} and {R(S, False)}), and at 7 and 30 d its validation gain kept its sign and a similar size (differences below 0.01). "
+        f"Ridge-patch is better than anomaly persistence at every lead in the Kuroshio box, but in the subtropical box it is still worse than anomaly persistence at 1 and 7 days (skill {sg(ap(S, '1', 'ridge_patch'))}, {sg(ap(S, '7', 'ridge_patch'))}) and better only at 30 days ({sg(ap(S, '30', 'ridge_patch'))}).",
+        f"**Did LSTM-patch beat Ridge-patch (nonlinear gain, inputs held equal)?** In the subtropical box at 7 and 30 days, yes: skill vs Ridge-patch {P(S, '7')} and {P(S, '30')} (all three seeds positive). "
+        f"In the Kuroshio box no: {P(K, '1')} at 1 d, {P(K, '7')} at 7 d, and at 30 d it is a tie ({P(K, '30')}, seeds of both signs). At 1 day LSTM-patch is worse than Ridge-patch in both boxes in every seed "
+        f"({P(S, '1')} subtropical, where the seed spread is large). The patch also lowers the LSTM's RMSE at 7 and 30 days in both boxes relative to LSTM (point), but raises it at 1 day.",
+        f"**Did the validation gains hold?** Partly. Subtropical LSTM-patch vs Ridge held almost exactly at 7 and 30 days ({sg(b1_lstm(D, S, '7', 'skill_ridge')[0])}, {sg(b1_lstm(D, S, '30', 'skill_ridge')[0])} on test vs "
+        f"{sg(b1_lstm(D, S, '7', 'skill_ridge', False)[0])}, {sg(b1_lstm(D, S, '30', 'skill_ridge', False)[0])} on validation). In the Kuroshio box the nonlinear gain did not: LSTM-patch vs Ridge-patch was "
+        f"{V(K, '7')} and {V(K, '30')} at 7 and 30 d on validation and is {sk(K, '7')} and {sk(K, '30')} on test; at 1 day the Kuroshio LSTM-patch got much worse on test (skill vs Ridge {sg(b1_lstm(D, K, '1', 'skill_ridge')[0])} vs "
+        f"{sg(b1_lstm(D, K, '1', 'skill_ridge', False)[0])} on validation; seed std of the RMSE {sd_k1:.3f} °C). As with the earlier LSTM, the Kuroshio results are the less stable ones.",
+        f"**Seasons.** Ridge-patch beats Ridge in all four seasons at 7 and 30 d in both boxes except Kuroshio DJF at 7 d ({sg(sl(K, '7')['DJF'])}). LSTM-patch beats Ridge-patch in all four seasons at 7 and 30 d in the subtropical box; "
+        f"in the Kuroshio box at 30 d only in DJF ({sg(lp(K, '30')['DJF'])}).",
+        "**Caveats (stated before the test).** Alphas of the point Ridge and Ridge+doy sit at the lower edge of the grid at 7 and 30 days (validation curve flat there, not changed); the Ridge-patch alphas are interior. "
+        "Validation numbers are slightly optimistic: the new ridge alphas and the LSTM early stopping were chosen on the same validation years. The earlier point-LSTM gains shrank or vanished on test, and the Kuroshio gains of LSTM-patch over Ridge shrank or vanished in the same way. "
+        "Validation and test use different pair conventions (see the protocols). Two boxes that disagree, three seeds and one test run: no general claim is made; this is a learning experiment, not an ocean forecasting model."]
+
+
+def b1_short(D):
+    b1_facts(D)   # runs the asserts that guard the statements below
+    K, S = "kuroshio", "subtropical"
+    P = lambda r, h: f"{sg(b1_lstm(D, r, h, 'skill_rp')[0])}"  # noqa: E731
+    return (f"The day of year alone does not help Ridge; the patch does (Ridge-patch beats Ridge in all six cells). LSTM-patch beats Ridge-patch in the subtropical box at 7 and 30 d "
+            f"({P(S, '7')}, {P(S, '30')} skill vs Ridge-patch; its validation gain vs Ridge held) but not in the Kuroshio box ({P(K, '1')}, {P(K, '7')}, {P(K, '30')}; validation gains did not hold). "
+            "Two boxes that disagree, three seeds, one test run: no general claim.")
+
+
 def readme(D, f):
     cfg = D.cfg
     t, K, S = D.test, "kuroshio", "subtropical"
@@ -304,10 +424,25 @@ def readme(D, f):
     for para in lstm_facts(D)[:2] + lstm_hypotheses(D) + lstm_facts(D)[2:]:
         A(para + "\n")
     A("![LSTM learning curves](results/figures/figL1_lstm_curves.png)\n\n*Figure L1. LSTM learning curves (validation period; dot = best epoch).*\n")
+    A("## B1: spatial context (added after the LSTM experiment; everything above is unchanged)")
+    A("Question: does adding the neighbouring grid points help, and how much of an LSTM gain is the extra inputs rather than the model? "
+      "Protocols, written and committed before any model was run on the test period: [`docs/b1_spatial_protocol.md`](docs/b1_spatial_protocol.md) (halo data, models, validation) and "
+      "[`docs/b1_test_protocol.md`](docs/b1_test_protocol.md) (test; tag `pre-b1-test`; run once). Full scores incl. seasons: `results/b1_test.json`, `results/b1_val.json`, `results/b1_val_report.md`; "
+      "provenance: `results/b1_manifest.json`, `results/b1_checks.json`, `results/halo_checks.json`.\n")
+    (t1, t2, t3) = b1_tables(D)
+    A("Test RMSE in °C (LSTM: mean ± std over seeds 0, 1, 2):\n")
+    A(md_table(*t1) + "\n")
+    A("Skill = 1 − RMSE/RMSE_reference (RMSE skill; validation in brackets; LSTM mean ± std over seeds):\n")
+    A(md_table(*t2) + "\n")
+    A("Temporal ACC (test):\n")
+    A(md_table(*t3) + "\n")
+    for para in b1_facts(D):
+        A(para + "\n")
+    A("![B1 learning curves](results/figures/figB1_curves.png)\n\n*Figure B1. LSTM learning curves, point vs patch (validation period; dot = best epoch).*\n")
     A("## Status")
     A(f"Validation and test evaluation complete. The test period was evaluated once (commit `{f['commit'][:7]}`, tag `pre-test-freeze`, "
       f"started {f['run_utc']}). **Post-test changes:** none to methods or parameters. After the test run only figure and documentation code "
-      "was added (fig 2 / fig 3 layout, this README, the report). The LSTM test was then run once under its own pre-registered protocol (commit `" + D.lt["run"]["commit"][:7] + "`, tag `pre-lstm-test`, started " + D.lt["run"]["started_utc"] + "); the baseline results were not changed. **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box "
+      "was added (fig 2 / fig 3 layout, this README, the report). The LSTM test was then run once under its own pre-registered protocol (commit `" + D.lt["run"]["commit"][:7] + "`, tag `pre-lstm-test`, started " + D.lt["run"]["started_utc"] + "); the baseline results were not changed. The B1 spatial-context models were then tested once under their own pre-registered protocol (commit `" + D.bt["run"]["commit"][:7] + "`, tag `pre-b1-test`, started " + D.bt["run"]["started_utc"] + "); neither the baseline nor the LSTM results were changed, and this README was updated once after that test. **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box "
       "is 0.262 °C, so \"all anomaly-based methods\" was wrong), added the validation-to-test ranking-change finding, the data-availability note, the references and the report header; "
       "no method, parameter or score changed.\n")
     A("## Limitations")
@@ -321,6 +456,7 @@ def readme(D, f):
       "Methods that revert towards the training climatology carry a negative bias that grows with lead.\n"
       "- Ridge is fitted per grid point and ignores spatial structure.\n"
       "- Ridge alpha was chosen at the lower edge of the pre-fixed grid for several region/lead cases (validation curve flat there, `results/ridge_alphas.json`); the grid was not extended.\n"
+      "- B1: only a 5×5 patch of two boxes, three seeds, one test run; the halo is inputs only. The point-Ridge and Ridge+doy alphas sit at the lower grid edge at 7 and 30 days (flat curve, not changed); validation numbers are slightly optimistic because alphas and early stopping used the validation years.\n"
       "- One fixed split (no cross-validation over time blocks); six test years are a short record.\n"
       "- I am still learning oceanography; interpretations here are descriptive, not physical explanations.\n")
     A("## Reproduce")
@@ -331,6 +467,9 @@ def readme(D, f):
       "python -m sst.figures2                  # validation fig 2 + fig S1\n# freeze: commit config.yaml + src, then: git tag pre-test-freeze\n"
       "python -m sst.run_test                  # test period, ONCE (guarded)\npython -m sst.figures2 test             # test fig 2 + fig 3\n"
       "python -m sst.lstm_train --all --jobs 4   # LSTM: 12 runs (validation only)\npython -m sst.lstm_manifest             # run provenance\npython -m sst.lstm_eval                 # LSTM validation scores + learning curves\n# commit, then: git tag pre-lstm-test\npython -m sst.lstm_test                 # LSTM test period, ONCE (guarded)\n"
+      "python -m sst.halo all                  # B1: 1 deg halo data (new files only) + checks\npython -m sst.b1_eval --checks          # inner block / pair / std equality\n"
+      "python -m sst.b1_ridge                  # B1: Ridge+doy, Ridge-patch (validation)\npython -m sst.b1_train --all --jobs 4   # B1: LSTM-patch, 6 runs (validation only)\npython -m sst.b1_manifest               # B1 provenance\npython -m sst.b1_eval                   # B1 validation report\n"
+      "# commit, then: git tag pre-b1-test\npython -m sst.b1_test                   # B1 test period, ONCE (guarded)\n"
       "python -m sst.make_docs                 # README.md + report/report.md/.html from results/*.json\n"
       "soffice --headless --convert-to pdf --outdir report report/report.html   # report.pdf\n"
       "python report/methods_example.py && python report/build_methods_note.py   # methods note (then soffice as above on report/methods_note.html)\npytest                                  # synthetic tests\n```\n")
@@ -369,9 +508,15 @@ def report_blocks(D, f):
           [["RMSE (skill vs Ridge)"] + [f"{lstm_stat(D, r, h, 'rmse')[0]:.3f} ({sg(lstm_stat(D, r, h, 'skill_ridge')[0])}) [{sg(lstm_stat(D, r, h, 'skill_ridge', test=False)[0])}]" for r in D.regions for h in LEADS]]),
          ("p", lstm_facts(D)[0]),
          ("p", lstm_facts(D)[2]),
+         ("p", "**B1: spatial context (added after the LSTM; own protocol, tag `pre-b1-test`, run once).** Same pairs, inner 40×40 scored; inputs from a 5×5 patch of neighbouring points (1° halo data). "
+               "RMSE skill vs Ridge, test [validation]; LSTM-patch mean ± std over 3 seeds."),
+         ("table", ["B1", "Kuroshio 1 d", "Kuroshio 7 d", "Kuroshio 30 d", "Subtropical 1 d", "Subtropical 7 d", "Subtropical 30 d"],
+          [["Ridge-patch"] + [f"{sg(b1_rp_skill(D, r, h))} [{sg(b1_rp_skill(D, r, h, False))}]" for r in D.regions for h in LEADS],
+           ["LSTM-patch"] + [f"{sg(b1_lstm(D, r, h, 'skill_ridge')[0])} [{sg(b1_lstm(D, r, h, 'skill_ridge', False)[0])}]" for r in D.regions for h in LEADS]]),
+         ("p", b1_short(D)),
          ("p", "**Limitations.** Two small regions; simple statistical baselines; OISST is a smooth interpolated analysis; hybrid ERDDAP + PSL data (verified on overlaps); "
                "v2/v2.1 label change at 2016; warm shift vs the 1982–2015 climatology, not detrended; Ridge ignores spatial structure; its alpha sits at the grid's lower edge in several cases; one fixed split."),
-         ("p", "Code, protocol (`docs/lstm_test_protocol.md`) and data checks: `README.md`, `results/*.json`. Reference for deep learning in ocean forecasting: Hao et al. 2025 (review)."),
+         ("p", "Code, protocols (`docs/lstm_test_protocol.md`, `docs/b1_spatial_protocol.md`, `docs/b1_test_protocol.md`) and data checks: `README.md`, `results/*.json`. Reference for deep learning in ocean forecasting: Hao et al. 2025 (review)."),
          ("refs", REFS),
          ("p", "*Code written with Claude Code; methodology, decisions and verification by the author.*")]
     return B
@@ -401,12 +546,12 @@ def render_report(blocks):
         elif k == "ol":
             md.append("\n".join(f"{i}. {x}" for i, x in enumerate(b[1], 1)) + "\n")
             ht.append("<ol>" + "".join(f"<li>{inline(x)}</li>" for x in b[1]) + "</ol>")
-    css = ("<style>@page{size:21cm 29.7cm;margin:1.0cm}body{font-family:'DejaVu Sans',Arial;font-size:6.9pt}"
+    css = ("<style>@page{size:21cm 29.7cm;margin:1.0cm}body{font-family:'DejaVu Sans',Arial;font-size:6.4pt}"
            "h1{font-size:11pt;margin:0 0 3pt 0}p{margin:0 0 3pt 0}td,th{font-size:6pt}ol{margin:0 0 3pt 0}li{margin:0}ol.r li{font-size:6pt}</style>")
     return "\n".join(md), f"<html><head><meta charset='utf-8'>{css}</head><body>" + "\n".join(ht) + "</body></html>"
 
 
-IMG_PX = 240
+IMG_PX = 200
 
 
 def main():

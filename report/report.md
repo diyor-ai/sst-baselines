@@ -40,9 +40,18 @@
 
 **Fairness caveat.** The LSTM gets the full 30-day sequence plus sin/cos of the day of year; Ridge gets lags 0–6 and the 30-day mean and no day of year, so part of any LSTM gain may come from the extra inputs, not from the nonlinear model (not tested). Validation and test used slightly different pair conventions (see the protocol). This is a learning experiment, not an ocean forecasting model, and the Kuroshio and subtropical results disagree, so no general claim is made.
 
+**B1: spatial context (added after the LSTM; own protocol, tag `pre-b1-test`, run once).** Same pairs, inner 40×40 scored; inputs from a 5×5 patch of neighbouring points (1° halo data). RMSE skill vs Ridge, test [validation]; LSTM-patch mean ± std over 3 seeds.
+
+| B1 | Kuroshio 1 d | Kuroshio 7 d | Kuroshio 30 d | Subtropical 1 d | Subtropical 7 d | Subtropical 30 d |
+|---|---|---|---|---|---|---|
+| Ridge-patch | +0.006 [+0.001] | +0.015 [+0.020] | +0.020 [+0.012] | +0.038 [+0.000] | +0.033 [+0.031] | +0.032 [+0.025] |
+| LSTM-patch | -0.183 [-0.010] | -0.007 [+0.022] | +0.013 [+0.026] | -0.002 [-0.018] | +0.069 [+0.062] | +0.083 [+0.082] |
+
+The day of year alone does not help Ridge; the patch does (Ridge-patch beats Ridge in all six cells). LSTM-patch beats Ridge-patch in the subtropical box at 7 and 30 d (+0.038, +0.053 skill vs Ridge-patch; its validation gain vs Ridge held) but not in the Kuroshio box (-0.190, -0.022, -0.007; validation gains did not hold). Two boxes that disagree, three seeds, one test run: no general claim.
+
 **Limitations.** Two small regions; simple statistical baselines; OISST is a smooth interpolated analysis; hybrid ERDDAP + PSL data (verified on overlaps); v2/v2.1 label change at 2016; warm shift vs the 1982–2015 climatology, not detrended; Ridge ignores spatial structure; its alpha sits at the grid's lower edge in several cases; one fixed split.
 
-Code, protocol (`docs/lstm_test_protocol.md`) and data checks: `README.md`, `results/*.json`. Reference for deep learning in ocean forecasting: Hao et al. 2025 (review).
+Code, protocols (`docs/lstm_test_protocol.md`, `docs/b1_spatial_protocol.md`, `docs/b1_test_protocol.md`) and data checks: `README.md`, `results/*.json`. Reference for deep learning in ocean forecasting: Hao et al. 2025 (review).
 
 **References**
 

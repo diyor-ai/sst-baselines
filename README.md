@@ -118,8 +118,60 @@ Question: with the **same information as Ridge** (the last 30 days of anomaly at
 
 *Figure L1. LSTM learning curves (validation period; dot = best epoch).*
 
+## B1: spatial context (added after the LSTM experiment; everything above is unchanged)
+Question: does adding the neighbouring grid points help, and how much of an LSTM gain is the extra inputs rather than the model? Protocols, written and committed before any model was run on the test period: [`docs/b1_spatial_protocol.md`](docs/b1_spatial_protocol.md) (halo data, models, validation) and [`docs/b1_test_protocol.md`](docs/b1_test_protocol.md) (test; tag `pre-b1-test`; run once). Full scores incl. seasons: `results/b1_test.json`, `results/b1_val.json`, `results/b1_val_report.md`; provenance: `results/b1_manifest.json`, `results/b1_checks.json`, `results/halo_checks.json`.
+
+Test RMSE in °C (LSTM: mean ± std over seeds 0, 1, 2):
+
+| Region, lead | Anom. persistence | Ridge | Ridge+doy | Ridge-patch | LSTM (point) | LSTM-patch |
+|---|---|---|---|---|---|---|
+| Kuroshio 1 d | 0.258 | 0.251 | 0.251 | 0.250 | 0.266 ± 0.007 | 0.297 ± 0.010 |
+| Kuroshio 7 d | 0.843 | 0.838 | 0.838 | 0.825 | 0.852 ± 0.008 | 0.843 ± 0.006 |
+| Kuroshio 30 d | 1.405 | 1.281 | 1.282 | 1.256 | 1.283 ± 0.010 | 1.265 ± 0.013 |
+| Subtropical 1 d | 0.122 | 0.128 | 0.128 | 0.123 | 0.124 ± 0.000 | 0.128 ± 0.007 |
+| Subtropical 7 d | 0.353 | 0.370 | 0.370 | 0.358 | 0.361 ± 0.005 | 0.344 ± 0.005 |
+| Subtropical 30 d | 0.571 | 0.568 | 0.568 | 0.550 | 0.556 ± 0.006 | 0.521 ± 0.002 |
+
+Skill = 1 − RMSE/RMSE_reference (RMSE skill; validation in brackets; LSTM mean ± std over seeds):
+
+| Region, lead | Ridge+doy vs Ridge | Ridge-patch vs Ridge [val] | LSTM-patch vs Ridge [val] | LSTM-patch vs Ridge-patch [val] | LSTM-patch vs AP |
+|---|---|---|---|---|---|
+| Kuroshio 1 d | -0.000 | +0.006 [+0.001] | -0.183 ± 0.040 [-0.010] | -0.190 ± 0.041 [-0.011] | -0.153 ± 0.039 |
+| Kuroshio 7 d | -0.000 | +0.015 [+0.020] | -0.007 ± 0.007 [+0.022] | -0.022 ± 0.007 [+0.002] | +0.000 ± 0.007 |
+| Kuroshio 30 d | -0.000 | +0.020 [+0.012] | +0.013 ± 0.010 [+0.026] | -0.007 ± 0.010 [+0.014] | +0.100 ± 0.009 |
+| Subtropical 1 d | -0.000 | +0.038 [+0.000] | -0.002 ± 0.059 [-0.018] | -0.042 ± 0.061 [-0.018] | -0.051 ± 0.061 |
+| Subtropical 7 d | -0.000 | +0.033 [+0.031] | +0.069 ± 0.014 [+0.062] | +0.038 ± 0.015 [+0.033] | +0.024 ± 0.015 |
+| Subtropical 30 d | -0.000 | +0.032 [+0.025] | +0.083 ± 0.004 [+0.082] | +0.053 ± 0.004 [+0.058] | +0.088 ± 0.004 |
+
+Temporal ACC (test):
+
+| Region, lead | AP | Ridge | Ridge+doy | Ridge-patch | LSTM (point) | LSTM-patch |
+|---|---|---|---|---|---|---|
+| Kuroshio 1 d | 0.977 | 0.978 | 0.978 | 0.978 | 0.978 | 0.977 ± 0.000 |
+| Kuroshio 7 d | 0.761 | 0.752 | 0.751 | 0.753 | 0.753 | 0.756 ± 0.003 |
+| Kuroshio 30 d | 0.335 | 0.330 | 0.328 | 0.342 | 0.326 | 0.324 ± 0.013 |
+| Subtropical 1 d | 0.972 | 0.972 | 0.972 | 0.973 | 0.972 | 0.972 ± 0.002 |
+| Subtropical 7 d | 0.783 | 0.769 | 0.769 | 0.777 | 0.768 | 0.780 ± 0.003 |
+| Subtropical 30 d | 0.442 | 0.436 | 0.436 | 0.453 | 0.413 | 0.445 ± 0.009 |
+
+**Inputs and models.** The 40×40 boxes were extended by a 1° halo (4 grid points per side, 48×48 grids; same ERDDAP + PSL pipeline and checks; 16,071 days, no missing/land point, the inner 40×40 equals the earlier files bit for bit: `results/halo_checks.json`). Targets and scoring stay on the inner 40×40 and use the same pairs as before; the halo only provides inputs. A patch is the 5×5 block of grid points centred on the target point. **Ridge+doy** = the existing Ridge features plus sin/cos of the day of year; **Ridge-patch** = lags 0–6 and the 30-day mean at each of the 25 patch points plus sin/cos of the day of year (202 features); **LSTM-patch** = the earlier LSTM (H = 64, same training settings, seeds 0, 1, 2) with the 25 patch anomalies plus sin/cos of the day of year as input of every day (30 × 27). All fitted on 1982–2015, ridge alphas and LSTM early stopping chosen on 2016–2019; these models were tested once (commit `b89b208`, tag `pre-b1-test`, started 2026-11-08T15:33:51Z). Anomaly persistence and Ridge were recomputed on the test pairs and equal the frozen `results/test_all.json`; the weights hashes equal `results/b1_manifest.json`. LSTM (point) is the frozen test result of the previous section.
+
+**Did the linear patch gain hold?** Yes. The day of year alone does nothing for Ridge (skill of Ridge+doy vs Ridge within ±0.0005 in all six cells, on validation and on test). Ridge-patch beats Ridge in all six test cells (skill vs Ridge Kuroshio +0.006, +0.015, +0.020, subtropical +0.038, +0.033, +0.032 at 1, 7, 30 d; validation +0.001, +0.020, +0.012 and +0.000, +0.031, +0.025), and at 7 and 30 d its validation gain kept its sign and a similar size (differences below 0.01). Ridge-patch is better than anomaly persistence at every lead in the Kuroshio box, but in the subtropical box it is still worse than anomaly persistence at 1 and 7 days (skill -0.009, -0.014) and better only at 30 days (+0.037).
+
+**Did LSTM-patch beat Ridge-patch (nonlinear gain, inputs held equal)?** In the subtropical box at 7 and 30 days, yes: skill vs Ridge-patch +0.038 ± 0.015 and +0.053 ± 0.004 (all three seeds positive). In the Kuroshio box no: -0.190 ± 0.041 at 1 d, -0.022 ± 0.007 at 7 d, and at 30 d it is a tie (-0.007 ± 0.010, seeds of both signs). At 1 day LSTM-patch is worse than Ridge-patch in both boxes in every seed (-0.042 ± 0.061 subtropical, where the seed spread is large). The patch also lowers the LSTM's RMSE at 7 and 30 days in both boxes relative to LSTM (point), but raises it at 1 day.
+
+**Did the validation gains hold?** Partly. Subtropical LSTM-patch vs Ridge held almost exactly at 7 and 30 days (+0.069, +0.083 on test vs +0.062, +0.082 on validation). In the Kuroshio box the nonlinear gain did not: LSTM-patch vs Ridge-patch was +0.002 and +0.014 at 7 and 30 d on validation and is -0.022 and -0.007 on test; at 1 day the Kuroshio LSTM-patch got much worse on test (skill vs Ridge -0.183 vs -0.010 on validation; seed std of the RMSE 0.010 °C). As with the earlier LSTM, the Kuroshio results are the less stable ones.
+
+**Seasons.** Ridge-patch beats Ridge in all four seasons at 7 and 30 d in both boxes except Kuroshio DJF at 7 d (-0.003). LSTM-patch beats Ridge-patch in all four seasons at 7 and 30 d in the subtropical box; in the Kuroshio box at 30 d only in DJF (+0.002).
+
+**Caveats (stated before the test).** Alphas of the point Ridge and Ridge+doy sit at the lower edge of the grid at 7 and 30 days (validation curve flat there, not changed); the Ridge-patch alphas are interior. Validation numbers are slightly optimistic: the new ridge alphas and the LSTM early stopping were chosen on the same validation years. The earlier point-LSTM gains shrank or vanished on test, and the Kuroshio gains of LSTM-patch over Ridge shrank or vanished in the same way. Validation and test use different pair conventions (see the protocols). Two boxes that disagree, three seeds and one test run: no general claim is made; this is a learning experiment, not an ocean forecasting model.
+
+![B1 learning curves](results/figures/figB1_curves.png)
+
+*Figure B1. LSTM learning curves, point vs patch (validation period; dot = best epoch).*
+
 ## Status
-Validation and test evaluation complete. The test period was evaluated once (commit `0aacc83`, tag `pre-test-freeze`, started 2026-11-02T06:30:47Z). **Post-test changes:** none to methods or parameters. After the test run only figure and documentation code was added (fig 2 / fig 3 layout, this README, the report). The LSTM test was then run once under its own pre-registered protocol (commit `dbf5ab3`, tag `pre-lstm-test`, started 2026-11-05T04:52:05Z); the baseline results were not changed. **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box is 0.262 °C, so "all anomaly-based methods" was wrong), added the validation-to-test ranking-change finding, the data-availability note, the references and the report header; no method, parameter or score changed.
+Validation and test evaluation complete. The test period was evaluated once (commit `0aacc83`, tag `pre-test-freeze`, started 2026-11-02T06:30:47Z). **Post-test changes:** none to methods or parameters. After the test run only figure and documentation code was added (fig 2 / fig 3 layout, this README, the report). The LSTM test was then run once under its own pre-registered protocol (commit `dbf5ab3`, tag `pre-lstm-test`, started 2026-11-05T04:52:05Z); the baseline results were not changed. The B1 spatial-context models were then tested once under their own pre-registered protocol (commit `b89b208`, tag `pre-b1-test`, started 2026-11-08T15:33:51Z); neither the baseline nor the LSTM results were changed, and this README was updated once after that test. **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box is 0.262 °C, so "all anomaly-based methods" was wrong), added the validation-to-test ranking-change finding, the data-availability note, the references and the report header; no method, parameter or score changed.
 
 ## Limitations
 - Two small regions, one product (OISST); results may not transfer elsewhere.
@@ -131,6 +183,7 @@ Validation and test evaluation complete. The test period was evaluated once (com
 - Warm shift: validation and test years are warmer than the 1982–2015 climatology; no detrending was applied (OCN is included instead). Methods that revert towards the training climatology carry a negative bias that grows with lead.
 - Ridge is fitted per grid point and ignores spatial structure.
 - Ridge alpha was chosen at the lower edge of the pre-fixed grid for several region/lead cases (validation curve flat there, `results/ridge_alphas.json`); the grid was not extended.
+- B1: only a 5×5 patch of two boxes, three seeds, one test run; the halo is inputs only. The point-Ridge and Ridge+doy alphas sit at the lower grid edge at 7 and 30 days (flat curve, not changed); validation numbers are slightly optimistic because alphas and early stopping used the validation years.
 - One fixed split (no cross-validation over time blocks); six test years are a short record.
 - I am still learning oceanography; interpretations here are descriptive, not physical explanations.
 
@@ -153,6 +206,14 @@ python -m sst.lstm_manifest             # run provenance
 python -m sst.lstm_eval                 # LSTM validation scores + learning curves
 # commit, then: git tag pre-lstm-test
 python -m sst.lstm_test                 # LSTM test period, ONCE (guarded)
+python -m sst.halo all                  # B1: 1 deg halo data (new files only) + checks
+python -m sst.b1_eval --checks          # inner block / pair / std equality
+python -m sst.b1_ridge                  # B1: Ridge+doy, Ridge-patch (validation)
+python -m sst.b1_train --all --jobs 4   # B1: LSTM-patch, 6 runs (validation only)
+python -m sst.b1_manifest               # B1 provenance
+python -m sst.b1_eval                   # B1 validation report
+# commit, then: git tag pre-b1-test
+python -m sst.b1_test                   # B1 test period, ONCE (guarded)
 python -m sst.make_docs                 # README.md + report/report.md/.html from results/*.json
 soffice --headless --convert-to pdf --outdir report report/report.html   # report.pdf
 python report/methods_example.py && python report/build_methods_note.py   # methods note (then soffice as above on report/methods_note.html)
