@@ -1,0 +1,16 @@
+# B1 "spatial context" settings (written 2026-11-08 before any halo download / model run). config.yaml is NOT edited.
+# Protocol: docs/b1_spatial_protocol.md
+halo:
+  width_points: 4                       # 1 degree at 0.25 deg
+  regions:                              # inner box +- 1.0 deg; grid 48x48
+    kuroshio_halo:    {inner: kuroshio,    lat_min: 29.125, lat_max: 40.875, lon_min: 144.125, lon_max: 155.875}
+    subtropical_halo: {inner: subtropical, lat_min: 14.125, lat_max: 25.875, lon_min: 149.125, lon_max: 160.875}
+patch: {size: 5}                        # 5x5 centred on the target point
+ridge_doy:   {features: "existing 8 ridge features + sin/cos doy of issue day (10)"}
+ridge_patch: {features: "25 patch points x (lags 0..6 + mean t-29..t) + sin/cos doy of issue day (202)"}
+ridge_alpha_selection: "13-value grid 1e-3..1e3, one alpha per region and lead, minimum validation RMSE (SST, cos-lat weighted, inner 40x40) over the LSTM validation pairs"
+lstm_patch:
+  hidden: 64                            # fixed earlier; no new search
+  seeds: [0, 1, 2]
+  inputs: "25 patch anomalies + sin/cos doy of each input day -> (30, 27)"
+  # lr, batch_size, samples_per_epoch, max_epochs, patience, num_threads, seq_len: taken from config.yaml `lstm` (unchanged)
