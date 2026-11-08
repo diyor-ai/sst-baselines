@@ -1,0 +1,75 @@
+{
+ "hidden": 64,
+ "seed": 1,
+ "best_epoch": 1,
+ "best_val_loss": 0.3142245555730116,
+ "epochs_run": 6,
+ "history": {
+  "train_loss": [
+   0.5262587831115723,
+   0.4743154891204834,
+   0.4716001920318604,
+   0.4694470907688141,
+   0.4668409706687927,
+   0.47011484270095827
+  ],
+  "val_loss": [
+   0.3142245555730116,
+   0.35014586053349117,
+   0.3261439103193356,
+   0.3277841568646328,
+   0.31740922318189074,
+   0.3220471123471425
+  ],
+  "seconds": [
+   108.18745827674866,
+   108.71591830253601,
+   88.93604922294617,
+   89.73262691497803,
+   88.22218036651611,
+   88.29478430747986
+  ]
+ },
+ "checkpoint": "models/b1_subtropical_patch_H64_s1.pt",
+ "sha256": "bc4b9b6fcfb2839e1c2f535a600cadd07cc847f624a16e78680ddc94af13f414",
+ "name": "b1_subtropical_patch_H64_s1",
+ "region": "subtropical",
+ "model": "lstm_patch",
+ "std_deg_c": 0.6987572937605917,
+ "total_seconds": 573.5843994617462,
+ "weights_sha256": "34400918a54c9743ae2744578352f6cee7b48bcac3a49998976ae0b165751735",
+ "settings": {
+  "seq_len": 30,
+  "samples_per_epoch": 200000,
+  "lr": 0.001,
+  "batch_size": 1024,
+  "max_epochs": 30,
+  "patience": 5,
+  "num_threads": 4,
+  "patch": 5,
+  "halo": 4,
+  "n_in": 27
+ },
+ "torch": "2.14.1+cpu",
+ "n_train_samples_total": 19774400,
+ "n_val_samples": 2289600,
+ "git_commit": "b79d882d0085fbec415e1c16b3f1b85e6298e206",
+ "git_dirty_in_code_files": false,
+ "started_utc": "2026-11-08T14:32:45Z",
+ "code_sha256": {
+  "src/sst/b1_data.py": "86a7f71c0f8b566bf81a39116463afc3c191bfcecf21c301cfca6aa5905e2cb7",
+  "src/sst/b1_train.py": "507b4ddeb17375546c2d6670d77435acef183c1e35e1f3601b3809058e0e76c3",
+  "src/sst/halo.py": "cd2e65463713447c1af6aef4be75dbd952b08046738d72a310118742bb938632",
+  "src/sst/lstm_data.py": "f72c38b830e2402040782d322ac25f03df846d007919e6a80cb3b94ebcfda160",
+  "src/sst/lstm_model.py": "29a426d4c35a6cdbae516a6bd3b96b832a68a589c0c8abc92bf49b30a70da0cc",
+  "src/sst/lstm_train.py": "2c8461504ae4ec3525cf2ec98164319369360cdc671e483e56d138d074a8e153",
+  "src/sst/climatology.py": "98f69584c19eadd0c77619d1ed7e4b56bdb0a0b2c6324ae5aa285b5f64a80c7e",
+  "src/sst/download.py": "ee00b51365b3f45fcf5d8d2c7206007f7b0316c4a121b4a2a5bf328b20da9d68",
+  "config.yaml": "346a8ea1a6573e594379e7927c4e7c56a39bebb67ec87c79fbde30e78b01c431",
+  "config_b1.yaml": "36114edabf787512d32fd85d6a2cbd4281830df8c05c17a09fdeb15744f1cbba"
+ },
+ "data_sha256": {
+  "data/processed/subtropical_halo.nc": "d664185d76cdd26ea4fbc557ba681307386a0558f2dc53b859a6f6c79091dffc",
+  "data/processed/subtropical.nc": "759f7ddec465fba4b9773f15e612cc9635b947fb91d125d365086fa41583b672"
+ }
+}

@@ -1,0 +1,93 @@
+{
+ "hidden": 64,
+ "seed": 2,
+ "best_epoch": 7,
+ "best_val_loss": 0.3105612224734162,
+ "epochs_run": 12,
+ "history": {
+  "train_loss": [
+   0.5330663257789612,
+   0.47821167174339296,
+   0.47551475712776187,
+   0.47268297257423403,
+   0.4687255436706543,
+   0.4700170461368561,
+   0.46541472840309145,
+   0.4625238868618011,
+   0.4629836749267578,
+   0.45913886245727537,
+   0.4585671277332306,
+   0.45658543127059936
+  ],
+  "val_loss": [
+   0.3330306375363326,
+   0.3322108737600109,
+   0.33114929206896215,
+   0.32812389288515886,
+   0.32778834807853147,
+   0.3189206466737287,
+   0.3105612224734162,
+   0.33981959665981204,
+   0.32782633957298046,
+   0.32665287818174066,
+   0.33383685694295706,
+   0.31800448217460525
+  ],
+  "seconds": [
+   110.23342275619507,
+   90.57523369789124,
+   87.30591988563538,
+   86.66748261451721,
+   87.11288166046143,
+   67.8892138004303,
+   45.64917254447937,
+   47.153215408325195,
+   46.31600880622864,
+   49.32753610610962,
+   45.55300974845886,
+   46.690680742263794
+  ]
+ },
+ "checkpoint": "models/b1_subtropical_patch_H64_s2.pt",
+ "sha256": "e95500da93729c6b6586559425e19de10b97a8c0ab30465385d9dbf70151a366",
+ "name": "b1_subtropical_patch_H64_s2",
+ "region": "subtropical",
+ "model": "lstm_patch",
+ "std_deg_c": 0.6987572937605917,
+ "total_seconds": 811.6082832813263,
+ "weights_sha256": "29aea4851f55010d9de2fe49f09db801eea8400e6f1a418644e5a2a00744d30a",
+ "settings": {
+  "seq_len": 30,
+  "samples_per_epoch": 200000,
+  "lr": 0.001,
+  "batch_size": 1024,
+  "max_epochs": 30,
+  "patience": 5,
+  "num_threads": 4,
+  "patch": 5,
+  "halo": 4,
+  "n_in": 27
+ },
+ "torch": "2.14.1+cpu",
+ "n_train_samples_total": 19774400,
+ "n_val_samples": 2289600,
+ "git_commit": "b79d882d0085fbec415e1c16b3f1b85e6298e206",
+ "git_dirty_in_code_files": false,
+ "started_utc": "2026-11-08T14:34:20Z",
+ "code_sha256": {
+  "src/sst/b1_data.py": "86a7f71c0f8b566bf81a39116463afc3c191bfcecf21c301cfca6aa5905e2cb7",
+  "src/sst/b1_train.py": "507b4ddeb17375546c2d6670d77435acef183c1e35e1f3601b3809058e0e76c3",
+  "src/sst/halo.py": "cd2e65463713447c1af6aef4be75dbd952b08046738d72a310118742bb938632",
+  "src/sst/lstm_data.py": "f72c38b830e2402040782d322ac25f03df846d007919e6a80cb3b94ebcfda160",
+  "src/sst/lstm_model.py": "29a426d4c35a6cdbae516a6bd3b96b832a68a589c0c8abc92bf49b30a70da0cc",
+  "src/sst/lstm_train.py": "2c8461504ae4ec3525cf2ec98164319369360cdc671e483e56d138d074a8e153",
+  "src/sst/climatology.py": "98f69584c19eadd0c77619d1ed7e4b56bdb0a0b2c6324ae5aa285b5f64a80c7e",
+  "src/sst/download.py": "ee00b51365b3f45fcf5d8d2c7206007f7b0316c4a121b4a2a5bf328b20da9d68",
+  "config.yaml": "346a8ea1a6573e594379e7927c4e7c56a39bebb67ec87c79fbde30e78b01c431",
+  "config_b1.yaml": "36114edabf787512d32fd85d6a2cbd4281830df8c05c17a09fdeb15744f1cbba"
+ },
+ "data_sha256": {
+  "data/processed/subtropical_halo.nc": "d664185d76cdd26ea4fbc557ba681307386a0558f2dc53b859a6f6c79091dffc",
+  "data/processed/subtropical.nc": "759f7ddec465fba4b9773f15e612cc9635b947fb91d125d365086fa41583b672"
+ }
+}

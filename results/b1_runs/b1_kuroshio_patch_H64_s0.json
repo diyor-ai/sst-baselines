@@ -1,0 +1,87 @@
+{
+ "hidden": 64,
+ "seed": 0,
+ "best_epoch": 5,
+ "best_val_loss": 0.5614035275021465,
+ "epochs_run": 10,
+ "history": {
+  "train_loss": [
+   0.5170501651096344,
+   0.4689557741737366,
+   0.47052211698532104,
+   0.4686821656513214,
+   0.4636640510749817,
+   0.4625856879043579,
+   0.46239067672729495,
+   0.46120751691818235,
+   0.4606007031440735,
+   0.45981225454330443
+  ],
+  "val_loss": [
+   0.5700925513013708,
+   0.5726912920403268,
+   0.5629716822420116,
+   0.5631904143654145,
+   0.5614035275021465,
+   0.5657497040733805,
+   0.5619085282427854,
+   0.5617823601009224,
+   0.5702075133687887,
+   0.562599002407594
+  ],
+  "seconds": [
+   139.96519494056702,
+   135.29618620872498,
+   135.87169337272644,
+   133.94325304031372,
+   146.88082695007324,
+   142.2861452102661,
+   143.73080396652222,
+   133.23167181015015,
+   107.91766452789307,
+   109.87543940544128
+  ]
+ },
+ "checkpoint": "models/b1_kuroshio_patch_H64_s0.pt",
+ "sha256": "7033c3666b6cfad1ed57b332906a4ca33e7e49844a1361f45b0644f13f99864b",
+ "name": "b1_kuroshio_patch_H64_s0",
+ "region": "kuroshio",
+ "model": "lstm_patch",
+ "std_deg_c": 1.167915570284816,
+ "total_seconds": 1329.7671251296997,
+ "weights_sha256": "ce82c9b7cafc16db098833afbb962621a396ff735460934e00c15bd1fc40afc2",
+ "settings": {
+  "seq_len": 30,
+  "samples_per_epoch": 200000,
+  "lr": 0.001,
+  "batch_size": 1024,
+  "max_epochs": 30,
+  "patience": 5,
+  "num_threads": 4,
+  "patch": 5,
+  "halo": 4,
+  "n_in": 27
+ },
+ "torch": "2.14.1+cpu",
+ "n_train_samples_total": 19774400,
+ "n_val_samples": 2289600,
+ "git_commit": "b79d882d0085fbec415e1c16b3f1b85e6298e206",
+ "git_dirty_in_code_files": false,
+ "started_utc": "2026-11-08T14:14:09Z",
+ "code_sha256": {
+  "src/sst/b1_data.py": "86a7f71c0f8b566bf81a39116463afc3c191bfcecf21c301cfca6aa5905e2cb7",
+  "src/sst/b1_train.py": "507b4ddeb17375546c2d6670d77435acef183c1e35e1f3601b3809058e0e76c3",
+  "src/sst/halo.py": "cd2e65463713447c1af6aef4be75dbd952b08046738d72a310118742bb938632",
+  "src/sst/lstm_data.py": "f72c38b830e2402040782d322ac25f03df846d007919e6a80cb3b94ebcfda160",
+  "src/sst/lstm_model.py": "29a426d4c35a6cdbae516a6bd3b96b832a68a589c0c8abc92bf49b30a70da0cc",
+  "src/sst/lstm_train.py": "2c8461504ae4ec3525cf2ec98164319369360cdc671e483e56d138d074a8e153",
+  "src/sst/climatology.py": "98f69584c19eadd0c77619d1ed7e4b56bdb0a0b2c6324ae5aa285b5f64a80c7e",
+  "src/sst/download.py": "ee00b51365b3f45fcf5d8d2c7206007f7b0316c4a121b4a2a5bf328b20da9d68",
+  "config.yaml": "346a8ea1a6573e594379e7927c4e7c56a39bebb67ec87c79fbde30e78b01c431",
+  "config_b1.yaml": "36114edabf787512d32fd85d6a2cbd4281830df8c05c17a09fdeb15744f1cbba"
+ },
+ "data_sha256": {
+  "data/processed/kuroshio_halo.nc": "30e21d5ec1e1d2b397098474dd03c7a5ca8b90cd9b3097a8cdedc5fe5704c95e",
+  "data/processed/kuroshio.nc": "824ccd0d7d2e3dfc46927e2375d00a49c96768e502cf5f30f240916d5f3c4f31"
+ }
+}

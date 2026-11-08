@@ -1,0 +1,30 @@
+{
+ "kuroshio": {
+  "inner_sst_equal": true,
+  "clim_inner_max_abs_diff": 0.0,
+  "clim_inner_bitwise_equal": true,
+  "std_halo_data": 1.167915570284816,
+  "std_existing_lstm_data": 1.167915570284816,
+  "std_bitwise_equal": true,
+  "train_pairs_equal": true,
+  "val_pairs_equal": true,
+  "n_train_pairs": 19774400,
+  "n_val_pairs": 2289600,
+  "nan_in_halo_grid_up_to_val_end": 0,
+  "centre_anomaly_equal_existing_max_abs_diff": 0.0
+ },
+ "subtropical": {
+  "inner_sst_equal": true,
+  "clim_inner_max_abs_diff": 0.0,
+  "clim_inner_bitwise_equal": true,
+  "std_halo_data": 0.6987572937605917,
+  "std_existing_lstm_data": 0.6987572937605917,
+  "std_bitwise_equal": true,
+  "train_pairs_equal": true,
+  "val_pairs_equal": true,
+  "n_train_pairs": 19774400,
+  "n_val_pairs": 2289600,
+  "nan_in_halo_grid_up_to_val_end": 0,
+  "centre_anomaly_equal_existing_max_abs_diff": 0.0
+ }
+}
