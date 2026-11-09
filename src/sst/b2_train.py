@@ -79,11 +79,15 @@ def train_run_b2(data, model_name, C, seed, tcfg, ckpt_path=None, max_epochs=Non
             x, y = torch.from_numpy(gather_x(data, t)), torch.from_numpy(gather_y(data, t))
             opt.zero_grad()
             loss = loss_fn(crop(model(x)), y)
+            if not torch.isfinite(loss):
+                raise FloatingPointError(f"non-finite training loss at epoch {epoch + 1}")
             loss.backward()
             opt.step()
             tot += loss.item() * len(t)
             cnt += len(t)
         v = val_loss(model, data)
+        if not np.isfinite(v):
+            raise FloatingPointError(f"non-finite validation loss at epoch {epoch + 1}")
         hist["train_loss"].append(tot / cnt)
         hist["val_loss"].append(v)
         hist["seconds"].append(time.time() - t0)
