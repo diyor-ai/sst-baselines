@@ -471,7 +471,7 @@ def readme(D, f):
       "python -m sst.b1_ridge                  # B1: Ridge+doy, Ridge-patch (validation)\npython -m sst.b1_train --all --jobs 4   # B1: LSTM-patch, 6 runs (validation only)\npython -m sst.b1_manifest               # B1 provenance\npython -m sst.b1_eval                   # B1 validation report\n"
       "# commit, then: git tag pre-b1-test\npython -m sst.b1_test                   # B1 test period, ONCE (guarded)\n"
       "python -m sst.make_docs                 # README.md + report/report.md/.html from results/*.json\n"
-      "soffice --headless --convert-to pdf --outdir report report/report.html   # report.pdf\n"
+      "python report/build_report_pdf.py   # report.pdf (embeds the figure, then soffice)\n"
       "python report/methods_example.py && python report/build_methods_note.py   # methods note (then soffice as above on report/methods_note.html)\npytest                                  # synthetic tests\n```\n")
     A("## References")
     A(REFS_MD + "\n")

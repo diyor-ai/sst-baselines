@@ -215,7 +215,7 @@ python -m sst.b1_eval                   # B1 validation report
 # commit, then: git tag pre-b1-test
 python -m sst.b1_test                   # B1 test period, ONCE (guarded)
 python -m sst.make_docs                 # README.md + report/report.md/.html from results/*.json
-soffice --headless --convert-to pdf --outdir report report/report.html   # report.pdf
+python report/build_report_pdf.py   # report.pdf (embeds the figure, then soffice)
 python report/methods_example.py && python report/build_methods_note.py   # methods note (then soffice as above on report/methods_note.html)
 pytest                                  # synthetic tests
 ```
