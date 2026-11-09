@@ -64,3 +64,6 @@ Timing is not a result. The `C_selection` rule does not apply to this model (one
 ## Addendum 2026-11-09 (user decision): "best epoch = 1" is a warning, not a stop
 The run check (src/sst/b2_check.py) prints a WARNING with the train/val curve when a run's best validation epoch is 1 and all losses are finite
 (the U-Net overfits within 2-3 epochs with ~12k samples). Still a STOP: non-finite loss, best validation loss > 1.0, wrong run count, failing tests.
+
+## Chain note 2026-11-09T15:01:19Z
+Profile on idle P-cores (results/b2_profile/decision.json): ConvLSTM jobs run as 3 concurrent processes x 4 threads on cpus 0-3 4-7 8-11. Timing is not a result.

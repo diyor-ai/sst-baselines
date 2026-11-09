@@ -1,0 +1,32 @@
+{
+ "3x2": {
+  "sec_per_batch": [
+   0.9871596049997606,
+   1.0064048416247715,
+   1.0144965074998709
+  ],
+  "agg_batches_per_s": 2.992353972994076
+ },
+ "3x4": {
+  "sec_per_batch": [
+   0.9726517427498038,
+   0.9796301036251407,
+   0.9830203480005366
+  ],
+  "agg_batches_per_s": 3.0661836115097194
+ },
+ "single_process_sec_per_batch": {
+  "4": 0.42449783287520404,
+  "6": 0.38995942787505555
+ },
+ "chosen": {
+  "setting": "3x4",
+  "threads_per_job": 4,
+  "cpus": [
+   "0-3",
+   "4-7",
+   "8-11"
+  ],
+  "rule": "highest aggregate throughput (sum of 1/sec_per_batch) of 3 concurrent jobs; single-process 4 vs 6 threads reported for information"
+ }
+}

@@ -29,3 +29,43 @@ wrote results/b2_manifest_unet.json: 12 runs; dirty flags: [False] commits: ['bf
 [subtropical unet C=32 seed=1] h=1: 0.243  h=7: 0.389  h=30: 0.486
 [subtropical unet C=32 seed=2] h=1: 0.232  h=7: 0.395  h=30: 0.490
 wrote results/b2_val_unet.json, b2_val_unet_report.md, b2_val_maps_unet.npz, figures/figB2_*_unet.png
+2026-11-09T15:00:24Z stage 1 done (U-Net report committed)
+2026-11-09T15:00:24Z profile: single process 4 threads
+[single4] {"model": "convlstm_ed", "C": 16, "threads": 4, "deterministic": true, "sec_per_batch": {"gather": 0.002966327499734689, "forward": 0.08614546050011995, "backward": 0.33481727125013094, "optimiser": 0.000568773625218455, "total": 0.42449783287520404}, "last_loss": 0.6592177748680115}
+2026-11-09T15:00:34Z profile: single process 6 threads
+[single6] {"model": "convlstm_ed", "C": 16, "threads": 6, "deterministic": true, "sec_per_batch": {"gather": 0.0031030962497879955, "forward": 0.0699965206251818, "backward": 0.31629667550032536, "optimiser": 0.0005631354997603921, "total": 0.38995942787505555}, "last_loss": 0.6592177748680115}
+2026-11-09T15:00:43Z profile: 3 concurrent jobs x 2 threads
+2026-11-09T15:01:01Z profile: 3 concurrent jobs x 4 threads
+{
+ "3x2": {
+  "sec_per_batch": [
+   0.9871596049997606,
+   1.0064048416247715,
+   1.0144965074998709
+  ],
+  "agg_batches_per_s": 2.992353972994076
+ },
+ "3x4": {
+  "sec_per_batch": [
+   0.9726517427498038,
+   0.9796301036251407,
+   0.9830203480005366
+  ],
+  "agg_batches_per_s": 3.0661836115097194
+ },
+ "single_process_sec_per_batch": {
+  "4": 0.42449783287520404,
+  "6": 0.38995942787505555
+ },
+ "chosen": {
+  "setting": "3x4",
+  "threads_per_job": 4,
+  "cpus": [
+   "0-3",
+   "4-7",
+   "8-11"
+  ],
+  "rule": "highest aggregate throughput (sum of 1/sec_per_batch) of 3 concurrent jobs; single-process 4 vs 6 threads reported for information"
+ }
+}
+2026-11-09T15:01:19Z profile done; ConvLSTM jobs: 3 x 4 threads on cpus 0-3 4-7 8-11
