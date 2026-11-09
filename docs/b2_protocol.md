@@ -1,0 +1,40 @@
+# B2 "whole-region models" (approved by Teacher Lu) - Part 1: models + VALIDATION ONLY
+Written 2026-11-09 BEFORE any B2 code, trial or result. The test period (2020-2025) is not touched by any model, statistic or fit;
+STOP after the validation report. (Copy of notes/2026-11-09.md; notes/ is gitignored, this file is the committed record.)
+
+## Question
+B1 showed neighbours help (Ridge-patch, LSTM-patch). B2 tests models that see the whole 48x48 box at once. One sample is one issue date
+(one whole field), so the training set is only ~12k samples: models are kept small.
+
+## 1. Data and samples
+- Existing 48x48 halo files and anomalies (harmonics3 climatology fitted on 1982-2015; the same single regional std, taken from sst.b1_data.make_data_b1). No new downloads.
+- Input for issue date t: anomaly fields t-29..t over 48x48, plus sin/cos of the day of year of each input day as constant channels (30 x 3).
+- Target: inner 40x40 anomaly fields at t+1, t+7, t+30 (3 channels). Model output is 48x48; crop [4:44, 4:44] for the loss and the evaluation.
+- Training samples: issue dates whose 30 input days AND all three targets lie inside 1982-01-01..2015-12-31.
+- Validation / evaluation: for each lead exactly the pairs of the frozen baselines Ridge-patch and LSTM-patch (= the LSTM validation samples):
+  issue date in 2016-2019 with t+30 <= 2019-12-31, history complete (may reach into 2015); target date = issue date + h.
+  Early stopping uses the loss on these same validation issue dates.
+- Forecast SST = clim(t+h) + predicted anomaly * std (existing climatology, existing metric code).
+
+## 2. Models (fixed now)
+- **U-Net**: input = 30 days x (anomaly, sin, cos) = 90 channels at 48x48. Three downsamplings 48 -> 24 -> 12 -> 6 (max-pool 2), channels C, 2C, 4C, 8C
+  (6x6 = bottleneck). Block = conv3x3 -> **GroupNorm (8 groups)** -> ReLU, twice. Up-path: ConvTranspose2d (k=2, s=2), concat skip, block. Head: 1x1 conv -> 3 channels. Zero padding.
+  GroupNorm (not BatchNorm): batch 32 and per-sample statistics, same behaviour in train and eval mode.
+- **ConvLSTM**: 2 layers, hidden channels C, kernel 3x3, zero padding, zero initial states, forget-gate bias 1 (other biases 0). Per-step input = anomaly + sin/cos maps (3 channels);
+  30 steps; a 1x1 conv on the last hidden state of layer 2 gives 3 channels. (Implementation detail with identical maths: the input-to-gate conv of each layer is applied to all 30 steps at once.)
+- One model per region (kuroshio, subtropical). C in {16, 32}; **chosen per model and region by the lowest mean validation RMSE of SST over seeds 0,1,2 and leads 1,7,30** (the rule used for the LSTM).
+- Training: MSE over the inner 40x40 x 3 leads (standardised units); Adam lr 1e-3; batch 32; the full training set every epoch, shuffled; max 60 epochs;
+  early stopping on validation loss, patience 8, best-validation weights kept; seeds 0,1,2; torch CPU, torch.use_deterministic_algorithms(True), 4 threads per job.
+- First a 1-epoch trial per model/C (kuroshio, seed 0, written to results/b2_trials/, not a result). Time per epoch and the estimated total are reported;
+  if the total is over ~6 hours the user is told BEFORE launching the rest.
+
+## 3. Rules (as before)
+No sudo; work only in this project; never delete log/result lines (append dated corrections); new results in new files; frozen results and tags untouched.
+Manifest for every run: commit, settings, sha256 of source/config/data, weights_sha256. Code committed locally before training; no push. Laptop kept awake (systemd-inhibit).
+Tests: no future inputs; no training target after 2015-12-31; the crop maps exactly onto the inner 40x40 grid (lat/lon); evaluation pairs = baseline pairs;
+same seed -> same loss; a tiny batch can be overfitted.
+
+## 4. Validation report (2016-2019), then STOP
+Per region and lead: RMSE and ACC for anomaly persistence, Ridge, Ridge-patch, LSTM-patch, U-Net, ConvLSTM (deep models: mean +- sample std over seeds); skill vs Ridge-patch.
+Chosen C per model and region; learning curves (best epoch, overfitting); season split in 2 lines; spatial check = map of skill vs Ridge-patch over the 40x40 at 7 and 30 days (figB2),
+edge vs centre; 3-4 lines: whole-region vs Ridge-patch? U-Net vs ConvLSTM? Kuroshio vs subtropical? Only numbers produced by code that was run.

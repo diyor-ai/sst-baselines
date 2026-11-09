@@ -1,0 +1,24 @@
+# B2 "whole-region models" settings (written 2026-11-09 BEFORE any B2 code or run). config.yaml and config_b1.yaml are NOT edited.
+# Protocol: docs/b2_protocol.md. Data: the existing 48x48 halo files (config_b1.yaml), no new downloads.
+sample: {unit: "one issue date t = one whole 48x48 field", input_days: 30, input: "anomaly t-29..t + sin/cos doy of each input day (3 channels/day)",
+         target: "inner 40x40 anomaly at t+1, t+7, t+30 (3 channels); model output 48x48 cropped to [4:44, 4:44]"}
+crop: {halo: 4, inner: 40}
+unet:
+  levels: "48 -> 24 -> 12 -> 6 (3 downsamplings, max-pool 2); channels C, 2C, 4C, 8C"
+  block: "conv3x3 -> GroupNorm(8) -> ReLU, twice"
+  upsample: "ConvTranspose2d k=2 s=2, skip concat, block"
+  input: "90 channels = 30 days x (anomaly, sin, cos)"
+  head: "1x1 conv -> 3 channels"
+convlstm:
+  layers: 2
+  hidden: C
+  kernel: 3
+  step_input: "anomaly, sin, cos maps (3 channels)"
+  init: "zero initial states; forget-gate bias 1, other biases 0; PyTorch default weight init"
+  head: "1x1 conv on the last hidden state of layer 2 -> 3 channels"
+C_grid: [16, 32]
+seeds: [0, 1, 2]
+train: {loss: "MSE over inner 40x40 x 3 leads (standardised units)", optimizer: Adam, lr: 0.001, batch_size: 32,
+        epoch: "full training set, shuffled", max_epochs: 60, patience: 8, keep: best-validation weights, num_threads: 4,
+        deterministic: true, device: cpu}
+C_selection: "per model and region: C with the lowest mean (over seeds 0,1,2 and leads 1,7,30) validation RMSE of SST (cos-lat weighted, same metric code as the baselines)"
