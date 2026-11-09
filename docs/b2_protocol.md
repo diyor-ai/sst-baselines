@@ -38,3 +38,13 @@ same seed -> same loss; a tiny batch can be overfitted.
 Per region and lead: RMSE and ACC for anomaly persistence, Ridge, Ridge-patch, LSTM-patch, U-Net, ConvLSTM (deep models: mean +- sample std over seeds); skill vs Ridge-patch.
 Chosen C per model and region; learning curves (best epoch, overfitting); season split in 2 lines; spatial check = map of skill vs Ridge-patch over the 40x40 at 7 and 30 days (figB2),
 edge vs centre; 3-4 lines: whole-region vs Ridge-patch? U-Net vs ConvLSTM? Kuroshio vs subtropical? Only numbers produced by code that was run.
+
+## Addendum 2026-11-09 (after the trials, on the user's instruction): U-Net runs only
+- Trial results: results/b2_trial_summary.md. ConvLSTM is NOT launched (cost far above 6 h; awaiting a decision). Only the 12 U-Net runs
+  (2 regions x C{16,32} x seeds 0,1,2) are started now.
+- Execution: 2 jobs in parallel (one per region), 3 torch threads each = 6 threads, pinned with taskset to one hardware thread per P-core
+  (CPUs 0,2,4 and 6,8,10). `--threads 3` overrides train.num_threads (4 in config_b2.yaml); the value used is recorded in every run's settings.
+  Everything else unchanged. Floating-point summation order can depend on the thread count, so identical seeds are only guaranteed to
+  reproduce with the same thread count.
+- **Timing is not a result.** Seconds per epoch / run in the trials, logs and manifests depend on the machine load and thread settings and are
+  reported only for planning; no conclusion rests on them.

@@ -163,9 +163,11 @@ def run_name(model, region, C, seed):
     return f"b2_{model}_{region}_C{C}_s{seed}"
 
 
-def run_one(model, region, C, seed, trial=False, timed=False):
+def run_one(model, region, C, seed, trial=False, timed=False, threads=None):
     cfg, b2 = load_config(), load_b2()
-    tcfg = b2["train"]
+    tcfg = dict(b2["train"])
+    if threads:
+        tcfg["num_threads"] = threads          # recorded in the run settings; timing is not a result
     data = load_data_b2(region, cfg)
     name = run_name(model, region, C, seed)
     print(f"[{name}] train samples {len(data.train_issue):,}  val samples {len(data.val_issue):,}  std {data.std:.3f} C", flush=True)
@@ -211,6 +213,8 @@ def main():
     p.add_argument("--trial", action="store_true")
     p.add_argument("--only", help="with --trial: run only this model")
     p.add_argument("--timed", action="store_true", help="with --trial: extrapolate the epoch time from a few real batches instead of a full epoch")
+    p.add_argument("--threads", type=int, help="override train.num_threads (recorded in the manifest)")
+    p.add_argument("--models", default="unet,convlstm", help="with --all: comma list of models to run")
     p.add_argument("--all", action="store_true")
     p.add_argument("--jobs", type=int, default=1)
     a = p.parse_args()
@@ -218,17 +222,17 @@ def main():
     if a.trial and not a.model:
         jobs = [(m, a.region, C, 0) for m in ("unet", "convlstm") if a.only in (None, m) for C in b2["C_grid"]]
     elif a.all:
-        jobs = [(m, r, C, s) for m in ("unet", "convlstm") for r in cfg["regions"] for C in b2["C_grid"] for s in b2["seeds"]
+        jobs = [(m, r, C, s) for m in a.models.split(",") for r in cfg["regions"] for C in b2["C_grid"] for s in b2["seeds"]
                 if not (RUNS / f"{run_name(m, r, C, s)}.json").exists()]          # finished runs are never overwritten
     else:
         jobs = [(a.model, a.region, a.C, a.seed)]
     if len(jobs) == 1:
-        run_one(*jobs[0], trial=a.trial, timed=a.timed)
+        run_one(*jobs[0], trial=a.trial, timed=a.timed, threads=a.threads)
         return
 
     def go(job):
         m, r, C, s = job
-        cmd = [sys.executable, "-m", "sst.b2_train", "--model", m, "--region", r, "--C", str(C), "--seed", str(s)] + (["--trial"] if a.trial else []) + (["--timed"] if a.timed else [])
+        cmd = [sys.executable, "-m", "sst.b2_train", "--model", m, "--region", r, "--C", str(C), "--seed", str(s)] + (["--trial"] if a.trial else []) + (["--timed"] if a.timed else []) + (["--threads", str(a.threads)] if a.threads else [])
         subprocess.run(cmd, check=True)
     with ThreadPoolExecutor(a.jobs) as ex:
         list(ex.map(go, jobs))
