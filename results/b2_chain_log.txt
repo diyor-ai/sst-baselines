@@ -69,3 +69,31 @@ wrote results/b2_val_unet.json, b2_val_unet_report.md, b2_val_maps_unet.npz, fig
  }
 }
 2026-11-09T15:01:19Z profile done; ConvLSTM jobs: 3 x 4 threads on cpus 0-3 4-7 8-11
+2026-11-09T15:01:19Z ConvLSTM workers started: 81704 81705 81707
+b2_convlstm_ed_kuroshio_C16_s0.json: best_epoch 8/16  best_val 0.5615  threads 4
+b2_convlstm_ed_kuroshio_C16_s1.json: best_epoch 5/13  best_val 0.5613  threads 4
+b2_convlstm_ed_kuroshio_C16_s2.json: best_epoch 6/14  best_val 0.5608  threads 4
+b2_convlstm_ed_subtropical_C16_s0.json: best_epoch 2/10  best_val 0.3139  threads 4
+b2_convlstm_ed_subtropical_C16_s1.json: best_epoch 2/10  best_val 0.3106  threads 4
+b2_convlstm_ed_subtropical_C16_s2.json: best_epoch 5/13  best_val 0.3101  threads 4
+OK
+wrote results/b2_manifest.json: 18 runs; dirty flags: [False] commits: ['8722bee', 'bfd0d37', 'ce60803', 'dfc736b', 'f251531']
+[kuroshio unet C=16 seed=0] h=1: 0.456  h=7: 0.885  h=30: 1.152
+[kuroshio unet C=16 seed=1] h=1: 0.439  h=7: 0.878  h=30: 1.146
+[kuroshio unet C=16 seed=2] h=1: 0.447  h=7: 0.882  h=30: 1.147
+[kuroshio unet C=32 seed=0] h=1: 0.402  h=7: 0.870  h=30: 1.155
+[kuroshio unet C=32 seed=1] h=1: 0.402  h=7: 0.867  h=30: 1.137
+[kuroshio unet C=32 seed=2] h=1: 0.406  h=7: 0.867  h=30: 1.152
+[kuroshio convlstm_ed C=16 seed=0] h=1: 0.428  h=7: 0.870  h=30: 1.150
+[kuroshio convlstm_ed C=16 seed=1] h=1: 0.426  h=7: 0.866  h=30: 1.152
+[kuroshio convlstm_ed C=16 seed=2] h=1: 0.411  h=7: 0.868  h=30: 1.155
+[subtropical unet C=16 seed=0] h=1: 0.245  h=7: 0.387  h=30: 0.498
+[subtropical unet C=16 seed=1] h=1: 0.243  h=7: 0.388  h=30: 0.492
+[subtropical unet C=16 seed=2] h=1: 0.244  h=7: 0.384  h=30: 0.491
+[subtropical unet C=32 seed=0] h=1: 0.237  h=7: 0.386  h=30: 0.499
+[subtropical unet C=32 seed=1] h=1: 0.243  h=7: 0.389  h=30: 0.486
+[subtropical unet C=32 seed=2] h=1: 0.232  h=7: 0.395  h=30: 0.490
+[subtropical convlstm_ed C=16 seed=0] h=1: 0.233  h=7: 0.388  h=30: 0.502
+[subtropical convlstm_ed C=16 seed=1] h=1: 0.241  h=7: 0.389  h=30: 0.493
+[subtropical convlstm_ed C=16 seed=2] h=1: 0.228  h=7: 0.386  h=30: 0.501
+wrote results/b2_val.json, b2_val_report.md, b2_val_maps.npz, figures/figB2_*.png
