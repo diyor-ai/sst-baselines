@@ -60,3 +60,7 @@ for the 24-run plan. The deviation is a change of architecture and input samplin
 3. C fixed at 16 (no C search); seeds 0,1,2; max 30 epochs; patience 8. All other settings as in the spec (MSE inner 40x40 x 3 leads, Adam 1e-3, batch 32, full training set shuffled, best weights, same pairs).
 4. 1-epoch trial, time and estimated total reported; if the total is over ~8 h with 2-3 parallel jobs the user is told before launching. Then the same validation report with U-Net and ConvLSTM side by side. STOP before the test period.
 Timing is not a result. The `C_selection` rule does not apply to this model (one C); U-Net keeps C in {16,32}.
+
+## Addendum 2026-11-09 (user decision): "best epoch = 1" is a warning, not a stop
+The run check (src/sst/b2_check.py) prints a WARNING with the train/val curve when a run's best validation epoch is 1 and all losses are finite
+(the U-Net overfits within 2-3 epochs with ~12k samples). Still a STOP: non-finite loss, best validation loss > 1.0, wrong run count, failing tests.
