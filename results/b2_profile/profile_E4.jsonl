@@ -1,0 +1,2 @@
+{"model": "convlstm_ed", "C": 16, "threads": 4, "deterministic": true, "sec_per_batch": {"gather": 0.0068986574999598815, "forward": 0.3307854374998745, "backward": 0.9904000420001466, "optimiser": 0.0026600693333875824, "total": 1.3307442063333685}, "last_loss": 0.6941414475440979}
+{"model": "convlstm_ed", "C": 16, "threads": 4, "deterministic": false, "sec_per_batch": {"gather": 0.0075981794999885706, "forward": 0.3111291608333886, "backward": 0.9001430063333373, "optimiser": 0.0026725989999552744, "total": 1.2215429456666698}, "last_loss": 0.6941414475440979}

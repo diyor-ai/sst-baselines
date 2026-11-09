@@ -1,0 +1,50 @@
+{
+ "model": "convlstm_ed",
+ "C": 16,
+ "seed": 0,
+ "best_epoch": 1,
+ "best_val_loss": 0.5871110160532441,
+ "epochs_run": 1,
+ "history": {
+  "train_loss": [
+   0.5185091988449488
+  ],
+  "val_loss": [
+   0.5871110160532441
+  ],
+  "seconds": [
+   554.3461012840271
+  ]
+ },
+ "name": "b2_convlstm_ed_kuroshio_C16_s0",
+ "region": "kuroshio",
+ "trial": true,
+ "total_seconds": 556.2974808216095,
+ "n_train": 12359,
+ "n_val": 1431,
+ "n_params": 39875,
+ "torch": "2.14.1+cpu",
+ "num_threads": 4,
+ "concurrent_jobs_note": "see results/b2_trial_summary.md",
+ "git_commit": "dfc736b85820275908153fb4d3a3b8ec459e1e4a",
+ "git_dirty_in_code_files": false,
+ "started_utc": "2026-11-09T13:04:53Z",
+ "code_sha256": {
+  "src/sst/b2_data.py": "10ba90c57719c88213b603efe6dbd51eb875923b85916d7bdfe4cc46a395024c",
+  "src/sst/b2_models.py": "375eba0d029a6a2f3a53363e33bd2df9814f900f4b4bc4b059f0fed217f9e066",
+  "src/sst/b2_train.py": "157ab654f7da94b88a22d0eae90cf37d7da687858d93353f2128394cbfa7dd08",
+  "src/sst/b1_data.py": "86a7f71c0f8b566bf81a39116463afc3c191bfcecf21c301cfca6aa5905e2cb7",
+  "src/sst/lstm_data.py": "f72c38b830e2402040782d322ac25f03df846d007919e6a80cb3b94ebcfda160",
+  "src/sst/lstm_train.py": "2c8461504ae4ec3525cf2ec98164319369360cdc671e483e56d138d074a8e153",
+  "src/sst/climatology.py": "98f69584c19eadd0c77619d1ed7e4b56bdb0a0b2c6324ae5aa285b5f64a80c7e",
+  "src/sst/download.py": "ee00b51365b3f45fcf5d8d2c7206007f7b0316c4a121b4a2a5bf328b20da9d68",
+  "src/sst/halo.py": "cd2e65463713447c1af6aef4be75dbd952b08046738d72a310118742bb938632",
+  "config.yaml": "346a8ea1a6573e594379e7927c4e7c56a39bebb67ec87c79fbde30e78b01c431",
+  "config_b1.yaml": "36114edabf787512d32fd85d6a2cbd4281830df8c05c17a09fdeb15744f1cbba",
+  "config_b2.yaml": "e995dae5cdcd08a5c22515840865de5390851869108fbd6b79b9da5ee9aef281"
+ },
+ "data_sha256": {
+  "data/processed/kuroshio_halo.nc": "30e21d5ec1e1d2b397098474dd03c7a5ca8b90cd9b3097a8cdedc5fe5704c95e",
+  "data/processed/kuroshio.nc": "824ccd0d7d2e3dfc46927e2375d00a49c96768e502cf5f30f240916d5f3c4f31"
+ }
+}

@@ -1,0 +1,2 @@
+b2_unet_kuroshio_C16_s0 best_epoch=2 epochs_run=10 best_val_loss=0.57613 seconds=775 commit=f251531 weights_sha256=b9c0746633de107a40ad2c97eed6d724a73bff65706b527caba3f1998dafa019
+b2_unet_subtropical_C16_s0 best_epoch=3 epochs_run=11 best_val_loss=0.31444 seconds=890 commit=f251531 weights_sha256=3d0b069ef7bd41ab4e02d20e42ad734b7dbfdebcf48b304721b78a639498d4e5
