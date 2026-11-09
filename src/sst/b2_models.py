@@ -70,5 +70,27 @@ class ConvLSTM(nn.Module):
         return self.head(self.l2(self.l1(x))[:, -1])          # last hidden state of layer 2
 
 
+class ConvLSTMED(nn.Module):
+    """Encoder-forecaster ConvLSTM (compute-reduced revision): every 3rd input day (t-27..t, 10 steps) -> strided conv 48->24 (shared over steps)
+    -> 2-layer ConvLSTM (C, 3x3) at 24x24 -> last hidden -> bilinear x2 + conv + GN + ReLU -> 1x1 conv -> 3 channels at 48x48."""
+    STEP = 3
+
+    def __init__(self, c=16, n_in=3, n_out=3):
+        super().__init__()
+        self.enc = nn.Sequential(nn.Conv2d(n_in, c, 3, stride=2, padding=1), nn.GroupNorm(GROUPS, c), nn.ReLU())
+        self.l1, self.l2 = ConvLSTMLayer(c, c), ConvLSTMLayer(c, c)
+        self.dec = nn.Sequential(nn.Conv2d(c, c, 3, padding=1), nn.GroupNorm(GROUPS, c), nn.ReLU())
+        self.head = nn.Conv2d(c, n_out, 1)
+
+    def forward(self, x):                                     # x: (B, 30, 3, 48, 48)
+        x = x[:, self.STEP - 1::self.STEP]                    # days t-27, t-24, ..., t  (index 29 is day t)
+        B, T = x.shape[:2]
+        z = self.enc(x.reshape(B * T, *x.shape[2:]))
+        z = z.reshape(B, T, *z.shape[1:])
+        h = self.l2(self.l1(z))[:, -1]
+        h = nn.functional.interpolate(h, scale_factor=2, mode="bilinear", align_corners=False)
+        return self.head(self.dec(h))
+
+
 def build(model, c, **kw):
-    return {"unet": UNet, "convlstm": ConvLSTM}[model](c, **kw)
+    return {"unet": UNet, "convlstm": ConvLSTM, "convlstm_ed": ConvLSTMED}[model](c, **kw)

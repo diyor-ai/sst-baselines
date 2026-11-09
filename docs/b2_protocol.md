@@ -48,3 +48,15 @@ edge vs centre; 3-4 lines: whole-region vs Ridge-patch? U-Net vs ConvLSTM? Kuros
   reproduce with the same thread count.
 - **Timing is not a result.** Seconds per epoch / run in the trials, logs and manifests depend on the machine load and thread settings and are
   reported only for planning; no conclusion rests on them.
+
+## Revised ConvLSTM spec (written 2026-11-09, BEFORE any ConvLSTM training and before any ConvLSTM validation result exists) - documented deviation
+Reason (timing, see results/b2_trial_summary.md): the specified ConvLSTM (30 steps at 48x48) costs about 1.4 h/epoch (C=16) and 3.0 h/epoch (C=32), i.e. >500 h
+for the 24-run plan. The deviation is a change of architecture and input sampling, decided only for compute reasons. The original `convlstm` code stays in the repository, unrun.
+0. Profile first (<=15 min; src/sst/b2_profile.py): time per batch with deterministic algorithms on/off and 4 vs 6 threads, with data-gather / forward / backward / optimiser
+   timed separately. If something other than the model is the bottleneck it is reported. Determinism is kept unless the slowdown is >2x AND the same seed still gives the same loss without it.
+1. `convlstm_ed` (encoder-forecaster): strided 3x3 conv 48->24 (3->16 channels) + GroupNorm(8) + ReLU, applied to every step with shared weights;
+   ConvLSTM, 2 layers, C=16, kernel 3x3, at 24x24 (zero init states, forget-gate bias 1); on the LAST hidden state: bilinear upsample x2 (24->48) + conv3x3 (16->16) + GroupNorm(8) + ReLU + 1x1 conv -> 3 channels at 48x48; crop [4:44,4:44] -> inner 40x40.
+2. Input: every 3rd day of the same 30-day window: t-27, t-24, ..., t (10 steps); each step = anomaly + sin/cos doy (3 channels). No day later than t.
+3. C fixed at 16 (no C search); seeds 0,1,2; max 30 epochs; patience 8. All other settings as in the spec (MSE inner 40x40 x 3 leads, Adam 1e-3, batch 32, full training set shuffled, best weights, same pairs).
+4. 1-epoch trial, time and estimated total reported; if the total is over ~8 h with 2-3 parallel jobs the user is told before launching. Then the same validation report with U-Net and ConvLSTM side by side. STOP before the test period.
+Timing is not a result. The `C_selection` rule does not apply to this model (one C); U-Net keeps C in {16,32}.

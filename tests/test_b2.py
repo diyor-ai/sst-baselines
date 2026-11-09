@@ -167,7 +167,7 @@ def test_eval_pairs_equal_frozen_baseline_pairs_real():
 
 
 # ---------------------------------------------------------------- determinism and overfitting
-@pytest.mark.parametrize("model", ["unet", "convlstm"])
+@pytest.mark.parametrize("model", ["unet", "convlstm", "convlstm_ed"])
 def test_same_seed_same_loss(data, model):
     d = tiny(data)
     r1 = train_run_b2(d, model, 16, 3, TCFG, max_epochs=2, verbose=False)
@@ -177,7 +177,7 @@ def test_same_seed_same_loss(data, model):
     assert r1["history"]["train_loss"] != r3["history"]["train_loss"]
 
 
-@pytest.mark.parametrize("model", ["unet", "convlstm"])
+@pytest.mark.parametrize("model", ["unet", "convlstm", "convlstm_ed"])
 def test_tiny_batch_can_be_overfitted(data, model):
     torch.manual_seed(0)
     d = tiny(data, n_tr=4, n_va=2)
@@ -185,9 +185,9 @@ def test_tiny_batch_can_be_overfitted(data, model):
     x, y = torch.from_numpy(gather_x(d, d.train_issue)), torch.from_numpy(gather_y(d, d.train_issue))
     if model == "convlstm":
         x = x[:, -6:]                                  # last 6 input days only: keeps the test fast (the recurrence is the same)
-    opt = torch.optim.Adam(net.parameters(), lr=3e-3 if model == "unet" else 1e-2)
+    opt = torch.optim.Adam(net.parameters(), lr=3e-3 if model in ("unet", "convlstm_ed") else 1e-2)
     first = None
-    for i in range(150 if model == "unet" else 120):
+    for i in range({"unet": 150, "convlstm": 120, "convlstm_ed": 300}[model]):
         opt.zero_grad()
         loss = torch.nn.functional.mse_loss(crop(net(x)), y)
         loss.backward()
@@ -204,3 +204,31 @@ def test_val_loss_matches_manual(data):
     with torch.no_grad():
         err = crop(net(torch.from_numpy(gather_x(d, d.val_issue)))) - torch.from_numpy(gather_y(d, d.val_issue))
     assert abs(val_loss(net, d, chunk=2) - float((err.double() ** 2).mean())) < 1e-6
+
+
+# ---------------------------------------------------------------- convlstm_ed specifics
+def test_convlstm_ed_uses_exactly_every_third_day_ending_at_t(data):
+    torch.manual_seed(0)
+    net = build("convlstm_ed", 16).eval()
+    t = np.array([int(data.val_issue[5])])
+    x = torch.from_numpy(gather_x(data, t))
+    with torch.no_grad():
+        y0 = net(x)
+        used = [i for i in range(30) if True]
+        x2 = x.clone()
+        unused = [i for i in range(30) if i % 3 != 2]            # days other than t-27, t-24, ..., t
+        x2[:, unused] = 7.0
+        assert torch.equal(net(x2), y0)                         # unused days have no influence
+        for i in (2, 14, 29):                                   # used days do (29 = day t)
+            x3 = x.clone()
+            x3[:, i, 0] += 1.0
+            assert not torch.equal(net(x3), y0)
+    assert y0.shape == (1, 3, 48, 48)
+    days = data.dates[t[0] - 29:t[0] + 1][2::3]
+    assert len(days) == 10 and days[-1] == data.dates[t[0]] and days[0] == data.dates[t[0] - 27]
+
+
+def test_convlstm_ed_runs_under_deterministic_algorithms():
+    torch.use_deterministic_algorithms(True)
+    net = build("convlstm_ed", 16)
+    net(torch.randn(2, 30, 3, 48, 48)).sum().backward()
