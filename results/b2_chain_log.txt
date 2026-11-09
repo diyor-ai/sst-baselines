@@ -1,0 +1,31 @@
+2026-11-09T13:20:14Z chain started; waiting for U-Net workers
+2026-11-09T14:58:16Z no b2_train process left
+b2_unet_kuroshio_C16_s0.json: best_epoch 2/10  best_val 0.5761  threads 3
+b2_unet_kuroshio_C16_s1.json: best_epoch 3/11  best_val 0.5659  threads 3
+b2_unet_kuroshio_C16_s2.json: best_epoch 2/10  best_val 0.5698  threads 3
+b2_unet_kuroshio_C32_s0.json: best_epoch 4/12  best_val 0.5596  threads 3
+b2_unet_kuroshio_C32_s1.json: best_epoch 3/11  best_val 0.5480  threads 3
+b2_unet_kuroshio_C32_s2.json: best_epoch 4/12  best_val 0.5574  threads 3
+b2_unet_subtropical_C16_s0.json: best_epoch 3/11  best_val 0.3144  threads 3
+b2_unet_subtropical_C16_s1.json: best_epoch 2/10  best_val 0.3101  threads 3
+b2_unet_subtropical_C16_s2.json: best_epoch 5/13  best_val 0.3076  threads 3
+b2_unet_subtropical_C32_s0.json: best_epoch 3/11  best_val 0.3123  threads 3
+b2_unet_subtropical_C32_s1.json: best_epoch 2/10  best_val 0.3066  threads 3
+b2_unet_subtropical_C32_s2.json: best_epoch 2/10  best_val 0.3094  threads 3
+OK
+..................                                                       [100%]
+18 passed in 72.48s (0:01:12)
+wrote results/b2_manifest_unet.json: 12 runs; dirty flags: [False] commits: ['bfd0d37', 'ce60803', 'dfc736b', 'f251531']
+[kuroshio unet C=16 seed=0] h=1: 0.456  h=7: 0.885  h=30: 1.152
+[kuroshio unet C=16 seed=1] h=1: 0.439  h=7: 0.878  h=30: 1.146
+[kuroshio unet C=16 seed=2] h=1: 0.447  h=7: 0.882  h=30: 1.147
+[kuroshio unet C=32 seed=0] h=1: 0.402  h=7: 0.870  h=30: 1.155
+[kuroshio unet C=32 seed=1] h=1: 0.402  h=7: 0.867  h=30: 1.137
+[kuroshio unet C=32 seed=2] h=1: 0.406  h=7: 0.867  h=30: 1.152
+[subtropical unet C=16 seed=0] h=1: 0.245  h=7: 0.387  h=30: 0.498
+[subtropical unet C=16 seed=1] h=1: 0.243  h=7: 0.388  h=30: 0.492
+[subtropical unet C=16 seed=2] h=1: 0.244  h=7: 0.384  h=30: 0.491
+[subtropical unet C=32 seed=0] h=1: 0.237  h=7: 0.386  h=30: 0.499
+[subtropical unet C=32 seed=1] h=1: 0.243  h=7: 0.389  h=30: 0.486
+[subtropical unet C=32 seed=2] h=1: 0.232  h=7: 0.395  h=30: 0.490
+wrote results/b2_val_unet.json, b2_val_unet_report.md, b2_val_maps_unet.npz, figures/figB2_*_unet.png
