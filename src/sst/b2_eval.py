@@ -198,6 +198,49 @@ def append_chosen_c_correction():
         print("appended correction to", rep.name)
 
 
+def curves_md(res, cfg):
+    leads = [str(h) for h in cfg["leads_days"]]
+    models = list(next(iter(res["regions"].values()))["models"])
+    L = []
+    L += ["", "## Learning curves (all C; best epoch / epochs run; last val - best val; train loss at best epoch; threads)", "",
+          "| region | model | C | seed | best epoch / run | best val | last val - best val | train at best | threads |", "|---|---|---|---|---|---|---|---|---|"]
+    for r, R in res["regions"].items():
+        for m in models:
+            for C, v in R["models"][m].items():
+                if C == "selection":
+                    continue
+                for s, c in v["curves"].items():
+                    L.append(f"| {r} | {LABEL[m]} | {C} | {s} | {c['best_epoch']}/{c['epochs_run']} | {c['best_val_loss']:.4f} | {c['last_val_loss'] - c['best_val_loss']:+.4f} | {c['train_loss_at_best']:.4f} | {c['num_threads']} |")
+    return L
+
+
+def season_md(res, cfg):
+    leads = [str(h) for h in cfg["leads_days"]]
+    models = list(next(iter(res["regions"].values()))["models"])
+    L = []
+    L += ["", "## Skill vs Ridge-patch by season (mean over seeds, chosen C)", "", "| region | lead | model | " + " | ".join(SEASONS) + " |", "|---|---|---|" + "---|" * 4]
+    for r, R in res["regions"].items():
+        for h in leads:
+            for m in models:
+                d = R["models"][m][chosen(R, m)]["mean"][h]["skill_vs_ridge_patch"]["by_season"]
+                L.append(f"| {r} | {h} | {LABEL[m]} | " + " | ".join(f"{d[s]:+.3f}" for s in SEASONS) + " |")
+    return L
+
+
+def spatial_md(res, cfg):
+    leads = [str(h) for h in cfg["leads_days"]]
+    models = list(next(iter(res["regions"].values()))["models"])
+    L = []
+    L += ["", "## Spatial check: skill vs Ridge-patch, edge ring (outer 4) vs centre (inner 32x32), mean ± std over seeds (maps: figB2_maps.png)", "",
+          "| region | lead | model | edge | centre |", "|---|---|---|---|---|"]
+    for r, R in res["regions"].items():
+        for h in leads:
+            for m in models:
+                z = R["models"][m][chosen(R, m)]["zone_skill_vs_ridge_patch"]
+                L.append(f"| {r} | {h} | {LABEL[m]} | {z['mean'][h]['edge']:+.3f} ± {z['std'][h]['edge']:.3f} | {z['mean'][h]['centre']:+.3f} ± {z['std'][h]['centre']:.3f} |")
+    return L
+
+
 def report_md(res, cfg):
     leads = [str(h) for h in cfg["leads_days"]]
     models = list(next(iter(res["regions"].values()))["models"])
@@ -221,28 +264,7 @@ def report_md(res, cfg):
                          f"{v['mean'][h]['skill_vs_ridge_patch']['overall']:+.3f} ± {v['std'][h]['skill_vs_ridge_patch']['overall']:.3f} |")
             L.append("")
     L += chosen_c_md(res)
-    L += ["", "## Learning curves (all C; best epoch / epochs run; last val - best val; train loss at best epoch; threads)", "",
-          "| region | model | C | seed | best epoch / run | best val | last val - best val | train at best | threads |", "|---|---|---|---|---|---|---|---|---|"]
-    for r, R in res["regions"].items():
-        for m in models:
-            for C, v in R["models"][m].items():
-                if C == "selection":
-                    continue
-                for s, c in v["curves"].items():
-                    L.append(f"| {r} | {LABEL[m]} | {C} | {s} | {c['best_epoch']}/{c['epochs_run']} | {c['best_val_loss']:.4f} | {c['last_val_loss'] - c['best_val_loss']:+.4f} | {c['train_loss_at_best']:.4f} | {c['num_threads']} |")
-    L += ["", "## Skill vs Ridge-patch by season (mean over seeds, chosen C)", "", "| region | lead | model | " + " | ".join(SEASONS) + " |", "|---|---|---|" + "---|" * 4]
-    for r, R in res["regions"].items():
-        for h in leads:
-            for m in models:
-                d = R["models"][m][chosen(R, m)]["mean"][h]["skill_vs_ridge_patch"]["by_season"]
-                L.append(f"| {r} | {h} | {LABEL[m]} | " + " | ".join(f"{d[s]:+.3f}" for s in SEASONS) + " |")
-    L += ["", "## Spatial check: skill vs Ridge-patch, edge ring (outer 4) vs centre (inner 32x32), mean ± std over seeds (maps: figB2_maps.png)", "",
-          "| region | lead | model | edge | centre |", "|---|---|---|---|---|"]
-    for r, R in res["regions"].items():
-        for h in leads:
-            for m in models:
-                z = R["models"][m][chosen(R, m)]["zone_skill_vs_ridge_patch"]
-                L.append(f"| {r} | {h} | {LABEL[m]} | {z['mean'][h]['edge']:+.3f} ± {z['std'][h]['edge']:.3f} | {z['mean'][h]['centre']:+.3f} ± {z['std'][h]['centre']:.3f} |")
+    L += curves_md(res, cfg) + season_md(res, cfg) + spatial_md(res, cfg)
     L += ["", "## Answers (generated from the numbers above by code; read with the std)", ""] + answers(res, cfg)
     return "\n".join(L)
 

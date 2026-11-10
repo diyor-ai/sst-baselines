@@ -48,3 +48,4 @@ wrote results/b2_manifest_res.json: 12 runs; dirty flags: [False] commits: ['55b
 [subtropical resconvlstm_ed C=16 seed=2] h=1: 0.197  h=7: 0.386  h=30: 0.503
 plain models reproduce results/b2_val.json (max |diff| in RMSE/ACC 0.00e+00)
 wrote results/b2_val_res.json, b2_val_res_report.md, b2_val_maps_res.npz, figures/figB2_*_res.png
+2026-11-10T21:39:00Z RESIDUAL CHAIN DONE. Report committed. STOP: test period untouched, nothing pushed.
