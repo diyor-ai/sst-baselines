@@ -1,0 +1,34 @@
+{
+ "rule": "lowest mean validation RMSE over seeds 0,1,2 and leads 1,7,30 (plain vs residual; ties -> plain)",
+ "source": "results/b2_val_res.json",
+ "regions": {
+  "kuroshio": {
+   "unet": {
+    "chosen": "resunet",
+    "C": 32,
+    "mean_rmse_plain": 0.8063709024620677,
+    "mean_rmse_residual": 0.7947207362293446
+   },
+   "convlstm_ed": {
+    "chosen": "resconvlstm_ed",
+    "C": 16,
+    "mean_rmse_plain": 0.8140937907747302,
+    "mean_rmse_residual": 0.8022094067349016
+   }
+  },
+  "subtropical": {
+   "unet": {
+    "chosen": "resunet",
+    "C": 32,
+    "mean_rmse_plain": 0.37302250623017125,
+    "mean_rmse_residual": 0.3620684659200772
+   },
+   "convlstm_ed": {
+    "chosen": "resconvlstm_ed",
+    "C": 16,
+    "mean_rmse_plain": 0.37323037419063615,
+    "mean_rmse_residual": 0.3616635322633521
+   }
+  }
+ }
+}
