@@ -147,3 +147,16 @@ RMSE in deg C of forecast SST (cos-lat weighted); ACC = temporal anomaly correla
 - **ConvLSTM, kuroshio vs subtropical (skill vs Ridge-patch):** 1 d: kuroshio -0.148 vs subtropical -0.176; 7 d: kuroshio +0.009 vs subtropical +0.031; 30 d: kuroshio +0.024 vs subtropical +0.090
 - **U-Net edge vs centre (skill vs Ridge-patch, outer 4 rings vs inner 32x32):** kuroshio 7 d edge +0.003 / centre +0.013; kuroshio 30 d edge +0.029 / centre +0.027; subtropical 7 d edge +0.015 / centre +0.030; subtropical 30 d edge +0.096 / centre +0.106
 - **ConvLSTM edge vs centre (skill vs Ridge-patch, outer 4 rings vs inner 32x32):** kuroshio 7 d edge +0.006 / centre +0.011; kuroshio 30 d edge +0.029 / centre +0.021; subtropical 7 d edge +0.020 / centre +0.038; subtropical 30 d edge +0.078 / centre +0.097
+
+## Correction 2026-11-10 (the 'Chosen C' table above printed '-' for the mean RMSE columns: report-code bug, str vs int keys)
+
+The selection itself (`chosen`) was computed correctly; the mean RMSE values below are read from results/b2_val.json (unchanged).
+
+## Chosen C (lowest mean validation RMSE over seeds and leads)
+
+| region | model | mean RMSE C=16 | mean RMSE C=32 | chosen |
+|---|---|---|---|---|
+| kuroshio | U-Net | 0.8258 | 0.8064 | 32 |
+| kuroshio | ConvLSTM | 0.8141 | - | 16 |
+| subtropical | U-Net | 0.3745 | 0.3730 | 32 |
+| subtropical | ConvLSTM | 0.3732 | - | 16 |

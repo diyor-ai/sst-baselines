@@ -97,3 +97,4 @@ wrote results/b2_manifest.json: 18 runs; dirty flags: [False] commits: ['8722bee
 [subtropical convlstm_ed C=16 seed=1] h=1: 0.241  h=7: 0.389  h=30: 0.493
 [subtropical convlstm_ed C=16 seed=2] h=1: 0.228  h=7: 0.386  h=30: 0.501
 wrote results/b2_val.json, b2_val_report.md, b2_val_maps.npz, figures/figB2_*.png
+2026-11-09T17:50:17Z CHAIN DONE. Validation report committed. STOP: test period untouched, nothing pushed.

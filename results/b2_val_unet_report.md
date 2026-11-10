@@ -117,3 +117,14 @@ RMSE in deg C of forecast SST (cos-lat weighted); ACC = temporal anomaly correla
 - **U-Net vs Ridge-patch (RMSE skill, mean over seeds):** positive in 4/6 region-lead cells (positive by more than one seed-std in 4); range -0.194 to +0.102. kuroshio 1 d -0.096; kuroshio 7 d +0.009; kuroshio 30 d +0.028; subtropical 1 d -0.194; subtropical 7 d +0.024; subtropical 30 d +0.102
 - **U-Net, kuroshio vs subtropical (skill vs Ridge-patch):** 1 d: kuroshio -0.096 vs subtropical -0.194; 7 d: kuroshio +0.009 vs subtropical +0.024; 30 d: kuroshio +0.028 vs subtropical +0.102
 - **U-Net edge vs centre (skill vs Ridge-patch, outer 4 rings vs inner 32x32):** kuroshio 7 d edge +0.003 / centre +0.013; kuroshio 30 d edge +0.029 / centre +0.027; subtropical 7 d edge +0.015 / centre +0.030; subtropical 30 d edge +0.096 / centre +0.106
+
+## Correction 2026-11-10 (the 'Chosen C' table above printed '-' for the mean RMSE columns: report-code bug, str vs int keys)
+
+The selection itself (`chosen`) was computed correctly; the mean RMSE values below are read from results/b2_val_unet.json (unchanged).
+
+## Chosen C (lowest mean validation RMSE over seeds and leads)
+
+| region | model | mean RMSE C=16 | mean RMSE C=32 | chosen |
+|---|---|---|---|---|
+| kuroshio | U-Net | 0.8258 | 0.8064 | 32 |
+| subtropical | U-Net | 0.3745 | 0.3730 | 32 |

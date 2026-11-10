@@ -106,8 +106,8 @@ def evaluate_region(region, cfg, models, ref_all):
                 print(f"[{region} {mname} C={C} seed={s}] " + "  ".join(f"h={h}: {res[str(h)]['overall']['rmse']:.3f}" for h in leads), flush=True)
             out["models"][mname][str(C)] = {"per_seed": per_seed, **agg(list(per_seed.values())), "zone_skill_vs_ridge_patch": agg(list(zones.values())),
                                             "curves": curves(mname, region, C)}
-        sel = {C: float(np.mean([out["models"][mname][str(C)]["mean"][str(h)]["overall"]["rmse"] for h in leads])) for C in Cs}
-        out["models"][mname]["selection"] = {"rule": "lowest mean validation RMSE over seeds 0,1,2 and leads 1,7,30", "mean_rmse": sel, "chosen_C": int(min(sel, key=sel.get))}
+        sel = {str(C): float(np.mean([out["models"][mname][str(C)]["mean"][str(h)]["overall"]["rmse"] for h in leads])) for C in Cs}
+        out["models"][mname]["selection"] = {"rule": "lowest mean validation RMSE over seeds 0,1,2 and leads 1,7,30", "mean_rmse": sel, "chosen_C": int(min(sel, key=sel.get))}   # keys are str so that the report (and the JSON) look them up the same way
     return out, maps
 
 
@@ -174,6 +174,30 @@ def answers(res, cfg):
     return L
 
 
+def chosen_c_md(res):
+    """Chosen-C table. (Fixed 2026-11-10: the first version looked up str keys in an int-keyed dict and printed '-'.)"""
+    models = list(next(iter(res["regions"].values()))["models"])
+    L = ["## Chosen C (lowest mean validation RMSE over seeds and leads)", "", "| region | model | " + " | ".join(f"mean RMSE C={c}" for c in ("16", "32")) + " | chosen |", "|---|---|---|---|---|"]
+    for r, R in res["regions"].items():
+        for m in models:
+            sel = R["models"][m]["selection"]
+            L.append(f"| {r} | {LABEL[m]} | " + " | ".join(f"{sel['mean_rmse'][c]:.4f}" if c in sel["mean_rmse"] else "-" for c in ("16", "32")) + f" | {sel['chosen_C']} |")
+    return L
+
+
+def append_chosen_c_correction():
+    """Append (never overwrite) a dated correction with the right Chosen-C table to the two committed reports, from their own JSON."""
+    for tag in ("_unet", ""):
+        res = json.loads((RESULTS / f"b2_val{tag}.json").read_text())
+        rep = RESULTS / f"b2_val{tag}_report.md"
+        txt = rep.read_text()
+        assert "Correction 2026-11-10" not in txt
+        add = ["", "## Correction 2026-11-10 (the 'Chosen C' table above printed '-' for the mean RMSE columns: report-code bug, str vs int keys)", "",
+               "The selection itself (`chosen`) was computed correctly; the mean RMSE values below are read from " + f"results/b2_val{tag}.json (unchanged).", ""] + chosen_c_md(res)
+        rep.write_text(txt.rstrip("\n") + "\n" + "\n".join(add) + "\n")
+        print("appended correction to", rep.name)
+
+
 def report_md(res, cfg):
     leads = [str(h) for h in cfg["leads_days"]]
     models = list(next(iter(res["regions"].values()))["models"])
@@ -196,11 +220,7 @@ def report_md(res, cfg):
                 L.append(f"| {LABEL[m]} (C={C}) | {f3(v['mean'][h]['overall']['rmse'], v['std'][h]['overall']['rmse'])} | {f3(v['mean'][h]['overall']['acc'], v['std'][h]['overall']['acc'])} | "
                          f"{v['mean'][h]['skill_vs_ridge_patch']['overall']:+.3f} ± {v['std'][h]['skill_vs_ridge_patch']['overall']:.3f} |")
             L.append("")
-    L += ["## Chosen C (lowest mean validation RMSE over seeds and leads)", "", "| region | model | " + " | ".join(f"mean RMSE C={c}" for c in ("16", "32")) + " | chosen |", "|---|---|---|---|---|"]
-    for r, R in res["regions"].items():
-        for m in models:
-            sel = R["models"][m]["selection"]
-            L.append(f"| {r} | {LABEL[m]} | " + " | ".join(f"{sel['mean_rmse'][c]:.4f}" if c in sel["mean_rmse"] else "-" for c in ("16", "32")) + f" | {sel['chosen_C']} |")
+    L += chosen_c_md(res)
     L += ["", "## Learning curves (all C; best epoch / epochs run; last val - best val; train loss at best epoch; threads)", "",
           "| region | model | C | seed | best epoch / run | best val | last val - best val | train at best | threads |", "|---|---|---|---|---|---|---|---|---|"]
     for r, R in res["regions"].items():
@@ -290,9 +310,13 @@ def figures(res, maps_by_region, cfg, tag):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--models", required=True)
+    p.add_argument("--models")
     p.add_argument("--tag", default="")
+    p.add_argument("--fix-chosen-c", action="store_true", help="append the corrected Chosen-C table to b2_val_unet_report.md and b2_val_report.md, then exit")
     a = p.parse_args()
+    if a.fix_chosen_c:
+        append_chosen_c_correction()
+        return
     cfg = load_config()
     from sst.b2_train import load_b2
     b2 = load_b2()
