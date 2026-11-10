@@ -32,3 +32,11 @@ convlstm_ed:
   seeds: [0, 1, 2]
   max_epochs: 30
   patience: 8
+# ---- Residual variants (2026-11-10, decided BEFORE any residual training; docs/b2_protocol.md "Residual variant") ----
+residual:
+  output: "output = anomaly of the last input day t (inner 40x40, same field for all 3 leads) + network output; implemented on the 48x48 grid, then cropped"
+  resunet: {C: 32}
+  resconvlstm_ed: {C: 16}
+  seeds: [0, 1, 2]
+  training: "identical to the plain model (same train block; convlstm_ed block for max_epochs 30 / patience 8)"
+  variant_selection: "per model and region: plain vs residual by the lowest mean (over seeds 0,1,2 and leads 1,7,30) validation RMSE of SST, same metric code as the C selection"

@@ -170,7 +170,7 @@ def run_name(model, region, C, seed):
 def run_one(model, region, C, seed, trial=False, timed=False, threads=None):
     cfg, b2 = load_config(), load_b2()
     tcfg = dict(b2["train"])
-    if model == "convlstm_ed":
+    if model.endswith("convlstm_ed"):
         tcfg.update({k: b2["convlstm_ed"][k] for k in ("max_epochs", "patience")})
     if threads:
         tcfg["num_threads"] = threads          # recorded in the run settings; timing is not a result
@@ -229,7 +229,7 @@ def main():
         jobs = [(m, a.region, C, 0) for m in ("unet", "convlstm", "convlstm_ed") if a.only in (None, m) for C in (b2["convlstm_ed"]["C"] if m == "convlstm_ed" else b2["C_grid"])]
     elif a.all:
         jobs = [(m, r, C, s) for m in a.models.split(",") for r in cfg["regions"]
-                for C in (b2["convlstm_ed"]["C"] if m == "convlstm_ed" else b2["C_grid"]) for s in (b2["convlstm_ed"]["seeds"] if m == "convlstm_ed" else b2["seeds"])
+                for C in ([b2["residual"][m]["C"]] if m.startswith("res") else b2["convlstm_ed"]["C"] if m == "convlstm_ed" else b2["C_grid"]) for s in b2["seeds"]
                 if not (RUNS / f"{run_name(m, r, C, s)}.json").exists()]          # finished runs are never overwritten
     else:
         jobs = [(a.model, a.region, a.C, a.seed)]

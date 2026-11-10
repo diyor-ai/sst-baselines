@@ -67,3 +67,28 @@ The run check (src/sst/b2_check.py) prints a WARNING with the train/val curve wh
 
 ## Chain note 2026-11-09T15:01:19Z
 Profile on idle P-cores (results/b2_profile/decision.json): ConvLSTM jobs run as 3 concurrent processes x 4 threads on cpus 0-3 4-7 8-11. Timing is not a result.
+
+## Addendum 2026-11-10: Chosen-C table bug (report code only)
+The "Chosen C" table in results/b2_val_unet_report.md and results/b2_val_report.md printed "-" in the mean-RMSE columns (the report code looked up str keys in an int-keyed dict).
+The selection (`chosen_C`) was computed correctly; the code is fixed (src/sst/b2_eval.py) and the correct table is APPENDED as a dated correction to both reports
+(commit dd01a2b). No number in results/b2_val*.json changed. Plain U-Net: C=32 in both regions (mean RMSE kuroshio 0.8258 vs 0.8064, subtropical 0.3745 vs 0.3730); ConvLSTM: C=16 (fixed).
+
+## Residual variant (written 2026-11-10 BEFORE any residual training; on the user's instruction, still validation only - no test period, no push)
+Motivation: the plain whole-region models are worse than Ridge-patch / anomaly persistence at 1 d. One residual variant per model, decided now, no other variants.
+1. Output = last input anomaly (day t, the standardised anomaly of the issue date; inner 40x40 after the crop; the SAME field added to all 3 leads) + network output.
+   Implemented as `Residual(net)` in src/sst/b2_models.py: `net(x) + x[:, -1, 0]` on the 48x48 grid, then the usual crop; since the crop is a slice this equals
+   inner-40x40 anomaly(t) + cropped network output. The base uses day t only (no later day). The loss is the same MSE on the inner 40x40 x 3 leads (standardised units),
+   so the network learns the change from day t. Forecast SST = clim(t+h) + pred*std, as before.
+2. Models: `resunet` (U-Net, C=32) and `resconvlstm_ed` (ConvLSTM-ED, C=16) - the architectures, widths and initialisation are the plain ones (same seed -> identical initial weights).
+   C is NOT re-searched (C chosen on the plain models, see the correction above). Seeds 0,1,2, both regions: 12 runs.
+3. Training settings identical to the plain models: Adam lr 1e-3, batch 32, shuffled full training set, deterministic algorithms, torch CPU; U-Net max 60 epochs / patience 8 and
+   3 threads; ConvLSTM-ED max 30 epochs / patience 8 and 4 threads; best-validation weights; training issue dates and evaluation pairs unchanged.
+4. Plain vs residual is chosen per model and region by the same rule as C: lowest mean (over seeds 0,1,2 and leads 1,7,30) validation RMSE of SST (cos-lat weighted, same metric code).
+   Both variants are reported side by side (RMSE, ACC, skill vs Ridge-patch; mean ± std over seeds), the choice is marked, and season / edge-vs-centre / skill-map sections use the chosen variant.
+5. Run as an unattended chain with stop-on-failure (scripts/b2_chain_res.sh; log results/b2_chain_res_log.txt; STOPPED / DONE marker files b2_chain_res_*.txt): 3 workers pinned to
+   cpus 0-3 / 4-7 / 8-11, each running 2 residual U-Net and 2 residual ConvLSTM-ED runs one after the other. Then run check (finite losses, best val <= 1.0; best epoch 1 with finite losses = warning),
+   manifest (results/b2_manifest_res.json), evaluation of unet, resunet, convlstm_ed, resconvlstm_ed (results/b2_val_res.json, b2_val_res_report.md, b2_val_maps_res.npz, figures/figB2_*_res.png - NEW files;
+   the earlier b2_val* files stay as committed) and a local commit. STOP: test period untouched, nothing pushed.
+6. Tests added before training (tests/test_b2.py): residual output = day-t inner anomaly + network output for all 3 leads; same architecture / initial weights as plain; no day later than t;
+   same seed same loss; a tiny batch can be overfitted. Plus all earlier tests.
+Timing is not a result.

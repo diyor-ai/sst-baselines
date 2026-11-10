@@ -92,5 +92,20 @@ class ConvLSTMED(nn.Module):
         return self.head(self.dec(h))
 
 
+class Residual(nn.Module):
+    """Residual variant (decided 2026-11-10): output = anomaly of the last input day t (same field for all 3 leads) + network output.
+    The wrapped network is unchanged (same architecture, same init for the same seed). The base is added on the 48x48 grid; cropping afterwards gives
+    exactly 'inner 40x40 anomaly at day t + network output' because the crop is a pure slice."""
+
+    def __init__(self, net):
+        super().__init__()
+        self.net = net
+
+    def forward(self, x):                                     # x: (B, 30, 3, 48, 48); x[:, -1, 0] = anomaly of day t
+        return self.net(x) + x[:, -1, 0].unsqueeze(1)
+
+
 def build(model, c, **kw):
+    if model.startswith("res"):
+        return Residual(build(model[3:], c, **kw))
     return {"unet": UNet, "convlstm": ConvLSTM, "convlstm_ed": ConvLSTMED}[model](c, **kw)

@@ -30,7 +30,7 @@ from sst.run_val import _clean
 
 RESULTS = ROOT / "results"
 SEASONS = ["DJF", "MAM", "JJA", "SON"]
-LABEL = {"unet": "U-Net", "convlstm_ed": "ConvLSTM"}
+LABEL = {"unet": "U-Net", "convlstm_ed": "ConvLSTM", "resunet": "U-Net residual", "resconvlstm_ed": "ConvLSTM residual"}
 EDGE = 4
 
 
@@ -320,7 +320,7 @@ def main():
     cfg = load_config()
     from sst.b2_train import load_b2
     b2 = load_b2()
-    models = {m: (b2["convlstm_ed"]["C"] if m == "convlstm_ed" else b2["C_grid"]) for m in a.models.split(",")}
+    models = {m: ([b2["residual"][m]["C"]] if m.startswith("res") else b2["convlstm_ed"]["C"] if m == "convlstm_ed" else b2["C_grid"]) for m in a.models.split(",")}
     ref_all = json.loads((RESULTS / "b1_val.json").read_text())
     res = {"period": {"train": cfg["split"]["train"], "evaluated": cfg["split"]["val"]}, "leads_days": cfg["leads_days"], "regions": {}}
     maps_by_region = {}

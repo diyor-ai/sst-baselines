@@ -232,3 +232,73 @@ def test_convlstm_ed_runs_under_deterministic_algorithms():
     torch.use_deterministic_algorithms(True)
     net = build("convlstm_ed", 16)
     net(torch.randn(2, 30, 3, 48, 48)).sum().backward()
+
+
+# ---------------------------------------------------------------- residual variants (2026-11-10)
+@pytest.mark.parametrize("model", ["unet", "convlstm_ed"])
+def test_residual_output_is_last_day_anomaly_plus_network_output(data, model):
+    torch.manual_seed(0)
+    res = build("res" + model, 16).eval()
+    t = data.val_issue[[3, 40]]
+    x = torch.from_numpy(gather_x(data, t))
+    with torch.no_grad():
+        out = res(x)
+        plain = res.net(x)
+    base = torch.from_numpy(data.a[t].reshape(len(t), 1, GRID, GRID))          # standardised anomaly of day t (the last input day)
+    assert torch.equal(out, plain + base.expand(-1, 3, -1, -1))                  # same field for all 3 leads
+    assert torch.equal(crop(out), crop(plain) + crop(base).expand(-1, 3, -1, -1))   # on the inner 40x40: crop(base) = inner anomaly at day t
+    inner_t = data.a[t].reshape(len(t), GRID, GRID)[:, HALO:GRID - HALO, HALO:GRID - HALO]
+    assert np.array_equal(crop(base).numpy()[:, 0], inner_t)
+
+
+@pytest.mark.parametrize("model", ["unet", "convlstm_ed"])
+def test_residual_has_same_architecture_and_same_init_as_plain(model):
+    from sst.lstm_train import set_seed
+    set_seed(5)
+    p = build(model, 16)
+    set_seed(5)
+    r = build("res" + model, 16)
+    assert sum(q.numel() for q in p.parameters()) == sum(q.numel() for q in r.parameters())
+    assert all(torch.equal(a, b) for a, b in zip(p.state_dict().values(), r.net.state_dict().values()))
+
+
+def test_residual_uses_no_day_later_than_t(data):
+    torch.manual_seed(0)
+    res = build("resunet", 16).eval()
+    t = data.val_issue[[7]]
+    x = torch.from_numpy(gather_x(data, t))
+    with torch.no_grad():
+        y0 = res(x)
+        x2 = x.clone()
+        x2[:, -1, 0] += 1.0                                      # day t anomaly changes the base one-for-one (plus the network's response)
+        assert not torch.equal(res(x2), y0)
+    d2 = make_data_b2(make_sst(), CFG)
+    d2.a[t[0] + 1:] = 99.0                                       # destroy everything after the issue date
+    x3 = torch.from_numpy(gather_x(d2, t))
+    with torch.no_grad():
+        assert torch.equal(res(x3), y0)
+
+
+@pytest.mark.parametrize("model", ["resunet", "resconvlstm_ed"])
+def test_residual_same_seed_same_loss(data, model):
+    d = tiny(data)
+    C = 16
+    r1 = train_run_b2(d, model, C, 3, TCFG, max_epochs=2, verbose=False)
+    r2 = train_run_b2(d, model, C, 3, TCFG, max_epochs=2, verbose=False)
+    assert r1["history"]["train_loss"] == r2["history"]["train_loss"] and r1["history"]["val_loss"] == r2["history"]["val_loss"]
+
+
+def test_residual_tiny_batch_can_be_overfitted(data):
+    torch.manual_seed(0)
+    d = tiny(data, n_tr=4, n_va=2)
+    net = build("resunet", 16)
+    x, y = torch.from_numpy(gather_x(d, d.train_issue)), torch.from_numpy(gather_y(d, d.train_issue))
+    opt = torch.optim.Adam(net.parameters(), lr=3e-3)
+    first = None
+    for i in range(150):
+        opt.zero_grad()
+        loss = torch.nn.functional.mse_loss(crop(net(x)), y)
+        loss.backward()
+        opt.step()
+        first = first if first is not None else loss.item()
+    assert loss.item() < 0.15 * first, (first, loss.item())
