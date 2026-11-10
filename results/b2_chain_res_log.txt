@@ -1,0 +1,50 @@
+2026-11-10T00:33:23Z residual chain started
+..........................                                               [100%]
+26 passed in 80.93s (0:01:20)
+2026-11-10T00:34:45Z residual workers started: 109319 109320 109321
+2026-11-10T00:35:25Z STOPPED BY USER (manual, not a failure): chain, workers and the 3 running training jobs (resunet kuroshio C32 seeds 0,1,2, killed before finishing epoch 1) were killed. No residual run had finished; no run JSON, checkpoint or train-log line existed. Deleted only the partial outputs of those unfinished runs (results/b2_logs/res_w0-2.log, chain_res_stdout.log). Commits kept (dd01a2b table fix, 8148fbf protocol/code/tests). Will not restart until the user writes 'start'.
+2026-11-10T17:36:59Z residual chain started
+..........................                                               [100%]
+26 passed in 138.57s (0:02:18)
+2026-11-10T17:39:18Z residual workers started: 17968 17969 17970
+b2_resunet_kuroshio_C32_s0.json: best_epoch 4/12  best_val 0.5478  threads 3
+b2_resunet_kuroshio_C32_s1.json: best_epoch 4/12  best_val 0.5436  threads 3
+b2_resunet_kuroshio_C32_s2.json: best_epoch 3/11  best_val 0.5464  threads 3
+b2_resunet_subtropical_C32_s0.json: best_epoch 3/11  best_val 0.3092  threads 3
+b2_resunet_subtropical_C32_s1.json: best_epoch 2/10  best_val 0.2995  threads 3
+b2_resunet_subtropical_C32_s2.json: best_epoch 4/12  best_val 0.3018  threads 3
+OK
+b2_resconvlstm_ed_kuroshio_C16_s0.json: best_epoch 3/11  best_val 0.5574  threads 4
+b2_resconvlstm_ed_kuroshio_C16_s1.json: best_epoch 5/13  best_val 0.5563  threads 4
+b2_resconvlstm_ed_kuroshio_C16_s2.json: best_epoch 4/12  best_val 0.5586  threads 4
+b2_resconvlstm_ed_subtropical_C16_s0.json: best_epoch 2/10  best_val 0.3011  threads 4
+b2_resconvlstm_ed_subtropical_C16_s1.json: best_epoch 2/10  best_val 0.3017  threads 4
+b2_resconvlstm_ed_subtropical_C16_s2.json: best_epoch 4/12  best_val 0.3032  threads 4
+OK
+wrote results/b2_manifest_res.json: 12 runs; dirty flags: [False] commits: ['55bd42c']
+[kuroshio unet C=32 seed=0] h=1: 0.402  h=7: 0.870  h=30: 1.155
+[kuroshio unet C=32 seed=1] h=1: 0.402  h=7: 0.867  h=30: 1.137
+[kuroshio unet C=32 seed=2] h=1: 0.406  h=7: 0.867  h=30: 1.152
+[kuroshio resunet C=32 seed=0] h=1: 0.376  h=7: 0.865  h=30: 1.146
+[kuroshio resunet C=32 seed=1] h=1: 0.376  h=7: 0.863  h=30: 1.140
+[kuroshio resunet C=32 seed=2] h=1: 0.377  h=7: 0.860  h=30: 1.147
+[kuroshio convlstm_ed C=16 seed=0] h=1: 0.428  h=7: 0.870  h=30: 1.150
+[kuroshio convlstm_ed C=16 seed=1] h=1: 0.426  h=7: 0.866  h=30: 1.152
+[kuroshio convlstm_ed C=16 seed=2] h=1: 0.411  h=7: 0.868  h=30: 1.155
+[kuroshio resconvlstm_ed C=16 seed=0] h=1: 0.378  h=7: 0.867  h=30: 1.161
+[kuroshio resconvlstm_ed C=16 seed=1] h=1: 0.377  h=7: 0.870  h=30: 1.158
+[kuroshio resconvlstm_ed C=16 seed=2] h=1: 0.377  h=7: 0.869  h=30: 1.163
+[subtropical unet C=32 seed=0] h=1: 0.237  h=7: 0.386  h=30: 0.499
+[subtropical unet C=32 seed=1] h=1: 0.243  h=7: 0.389  h=30: 0.486
+[subtropical unet C=32 seed=2] h=1: 0.232  h=7: 0.395  h=30: 0.490
+[subtropical resunet C=32 seed=0] h=1: 0.196  h=7: 0.386  h=30: 0.512
+[subtropical resunet C=32 seed=1] h=1: 0.197  h=7: 0.385  h=30: 0.499
+[subtropical resunet C=32 seed=2] h=1: 0.196  h=7: 0.386  h=30: 0.502
+[subtropical convlstm_ed C=16 seed=0] h=1: 0.233  h=7: 0.388  h=30: 0.502
+[subtropical convlstm_ed C=16 seed=1] h=1: 0.241  h=7: 0.389  h=30: 0.493
+[subtropical convlstm_ed C=16 seed=2] h=1: 0.228  h=7: 0.386  h=30: 0.501
+[subtropical resconvlstm_ed C=16 seed=0] h=1: 0.199  h=7: 0.383  h=30: 0.502
+[subtropical resconvlstm_ed C=16 seed=1] h=1: 0.197  h=7: 0.388  h=30: 0.500
+[subtropical resconvlstm_ed C=16 seed=2] h=1: 0.197  h=7: 0.386  h=30: 0.503
+plain models reproduce results/b2_val.json (max |diff| in RMSE/ACC 0.00e+00)
+wrote results/b2_val_res.json, b2_val_res_report.md, b2_val_maps_res.npz, figures/figB2_*_res.png
