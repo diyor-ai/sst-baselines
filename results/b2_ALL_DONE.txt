@@ -1,0 +1,1 @@
+2026-11-10T22:23:16Z B2 plan complete: residual chain, plain-vs-residual validation report, choice, tag pre-b2-test, dry run, single test run (results/b2_test.json), README + report.pdf updated, 107 tests pass. Nothing pushed.

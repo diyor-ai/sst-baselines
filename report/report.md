@@ -49,9 +49,18 @@
 
 The day of year alone does not help Ridge; the patch does (Ridge-patch beats Ridge in all six cells). LSTM-patch beats Ridge-patch in the subtropical box at 7 and 30 d (+0.038, +0.053 skill vs Ridge-patch; its validation gain vs Ridge held) but not in the Kuroshio box (-0.190, -0.022, -0.007; validation gains did not hold). Two boxes that disagree, three seeds, one test run: no general claim.
 
+**B2: whole-region models (U-Net, ConvLSTM-ED; own protocol, tag `pre-b2-test`, run once).** Test RMSE skill vs Ridge-patch, mean ± std over 3 seeds [validation]; variant (plain/residual) chosen on validation by code.
+
+| B2 | Kuroshio 1 d | Kuroshio 7 d | Kuroshio 30 d | Subtropical 1 d | Subtropical 7 d | Subtropical 30 d |
+|---|---|---|---|---|---|---|
+| U-Net | -0.043 ± 0.002 [-0.024] | 0.037 ± 0.006 [+0.014] | 0.049 ± 0.009 [+0.031] | -0.017 ± 0.019 [+0.014] | 0.077 ± 0.003 [+0.035] | 0.146 ± 0.020 [+0.079] |
+| ConvLSTM-ED | -0.050 ± 0.009 [-0.027] | 0.028 ± 0.007 [+0.008] | 0.031 ± 0.004 [+0.017] | -0.032 ± 0.022 [+0.005] | 0.067 ± 0.014 [+0.035] | 0.128 ± 0.008 [+0.084] |
+
+Whole-region models (U-Net, ConvLSTM-ED; residual variants chosen on validation) beat Ridge-patch at 7 and 30 d in both boxes (U-Net skill vs Ridge-patch Kuroshio +0.037, +0.049; subtropical +0.077, +0.146) and LSTM-patch in all cells, but not at 1 d (U-Net -0.043, -0.017; also below anomaly persistence). Three seeds, one test run.
+
 **Limitations.** Two small regions; simple statistical baselines; OISST is a smooth interpolated analysis; hybrid ERDDAP + PSL data (verified on overlaps); v2/v2.1 label change at 2016; warm shift vs the 1982–2015 climatology, not detrended; Ridge ignores spatial structure; its alpha sits at the grid's lower edge in several cases; one fixed split.
 
-Code, protocols (`docs/lstm_test_protocol.md`, `docs/b1_spatial_protocol.md`, `docs/b1_test_protocol.md`) and data checks: `README.md`, `results/*.json`. Reference for deep learning in ocean forecasting: Hao et al. 2025 (review).
+Code, protocols (`docs/lstm_test_protocol.md`, `docs/b1_spatial_protocol.md`, `docs/b1_test_protocol.md`, `docs/b2_protocol.md`, `docs/b2_test_protocol.md`) and data checks: `README.md`, `results/*.json`. Reference for deep learning in ocean forecasting: Hao et al. 2025 (review).
 
 **References**
 

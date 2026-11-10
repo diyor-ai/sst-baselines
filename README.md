@@ -170,8 +170,30 @@ Temporal ACC (test):
 
 *Figure B1. LSTM learning curves, point vs patch (validation period; dot = best epoch).*
 
+## B2: whole-region models (added after B1; everything above is unchanged)
+Question: do models that see the whole 48×48 box at once (U-Net, ConvLSTM encoder-forecaster) beat the patch models? Protocols, written and committed before the models were trained / before the test period was touched: [`docs/b2_protocol.md`](docs/b2_protocol.md) (models, validation, residual variant) and [`docs/b2_test_protocol.md`](docs/b2_test_protocol.md) (test; tag `pre-b2-test`; run once). Full scores incl. seasons and MAE: `results/b2_test.json`, `results/b2_test_report.md`; validation: `results/b2_val_report.md`, `results/b2_val_res_report.md` (plain vs residual); provenance: `results/b2_manifest.json`, `results/b2_manifest_res.json`.
+
+Test RMSE in °C (LSTM-patch, U-Net, ConvLSTM-ED: mean ± std over seeds 0, 1, 2) and RMSE skill vs Ridge-patch (validation in brackets):
+
+| region | lead | Ridge-patch | LSTM-patch | U-Net | ConvLSTM-ED | U-Net skill vs Ridge-patch [val] | ConvLSTM-ED skill vs Ridge-patch [val] |
+|---|---|---|---|---|---|---|---|
+| kuroshio | 1 d | 0.250 | 0.297 ± 0.010 | 0.261 ± 0.000 | 0.262 ± 0.002 | -0.043 ± 0.002 [-0.024] | -0.050 ± 0.009 [-0.027] |
+| kuroshio | 7 d | 0.825 | 0.843 ± 0.006 | 0.795 ± 0.005 | 0.802 ± 0.006 | 0.037 ± 0.006 [+0.014] | 0.028 ± 0.007 [+0.008] |
+| kuroshio | 30 d | 1.256 | 1.265 ± 0.013 | 1.194 ± 0.011 | 1.217 ± 0.006 | 0.049 ± 0.009 [+0.031] | 0.031 ± 0.004 [+0.017] |
+| subtropical | 1 d | 0.123 | 0.128 ± 0.007 | 0.125 ± 0.002 | 0.127 ± 0.003 | -0.017 ± 0.019 [+0.014] | -0.032 ± 0.022 [+0.005] |
+| subtropical | 7 d | 0.358 | 0.344 ± 0.005 | 0.330 ± 0.001 | 0.333 ± 0.005 | 0.077 ± 0.003 [+0.035] | 0.067 ± 0.014 [+0.035] |
+| subtropical | 30 d | 0.550 | 0.521 ± 0.002 | 0.470 ± 0.011 | 0.480 ± 0.004 | 0.146 ± 0.020 [+0.079] | 0.128 ± 0.008 [+0.084] |
+
+**Models and choice.** One model sees the whole 48×48 box (30 days of anomaly + sin/cos day of year) and forecasts all 3 leads at once for the inner 40×40: a small **U-Net** (C = 32, 3 downsamplings, GroupNorm) and a **ConvLSTM encoder-forecaster** (C = 16; strided conv, 2-layer ConvLSTM at 24×24 on every 3rd day, 10 steps; a deviation from the first spec for compute reasons, documented in `docs/b2_protocol.md`). Each also has a **residual** variant (output = last input anomaly + network). Per region and family the variant with the lowest mean validation RMSE (seeds 0, 1, 2 × leads 1, 7, 30) went to the test, chosen by code (`results/b2_test_choice.json`): the residual one in all four cases (validation mean RMSE plain → residual, Kuroshio U-Net 0.8064 → 0.7947, subtropical U-Net 0.3730 → 0.3621). Trained on 1982–2015 only (~12k samples), early stopping on 2016–2019, seeds 0, 1, 2; the 12 existing checkpoints were tested once (commit `97e74f2`, tag `pre-b2-test`, started 2026-11-10T21:57:41Z), hashes checked against the manifests, and the baselines recomputed on the test pairs equal the frozen B1/baseline test results.
+
+**Beat the patch models?** At 7 and 30 days yes, in both boxes and for both models, by more than one seed-std: skill vs Ridge-patch U-Net Kuroshio +0.037 ± 0.006 / +0.049 ± 0.009, subtropical +0.077 ± 0.003 / +0.146 ± 0.020; ConvLSTM-ED Kuroshio +0.028 ± 0.007 / +0.031 ± 0.004, subtropical +0.067 ± 0.014 / +0.128 ± 0.008. At 1 day no: both models are below Ridge-patch (U-Net -0.043 ± 0.002 Kuroshio, -0.017 ± 0.019 subtropical; ConvLSTM-ED -0.050 ± 0.009, -0.032 ± 0.022) and also worse than anomaly persistence in all four cells. Against LSTM-patch the means are positive in all 12 model-region-lead cells (U-Net +0.025 to +0.124, ConvLSTM-ED +0.010 to +0.118); the 1-day gain is partly because LSTM-patch was poor at 1 day on test (B1).
+
+**U-Net vs ConvLSTM-ED, regions, validation.** The U-Net has the lower test RMSE than the ConvLSTM-ED in all six region-lead cells (differences small, e.g. Kuroshio 30 d 1.194 vs 1.217 °C), with a ~50× larger parameter count. The gain over Ridge-patch is larger in the subtropical box than in the Kuroshio box at 7 and 30 d. Validation conclusions held where they were positive: the 7 and 30 d gains over Ridge-patch were positive on validation and larger on test; at 1 day the subtropical U-Net was slightly positive on validation (+0.014) and is negative on test.
+
+**Caveats.** C, the variant and early stopping were chosen on the validation years; ~12k highly autocorrelated training samples for 4×10⁴–2×10⁶ parameters, validation best epochs 2–8; three seeds measure training noise only, not the sampling uncertainty of six test years; the residual variant mainly fixes the 1-day forecast and is nearly neutral at 7 and 30 d (validation only: `results/b2_val_res_report.md`); the unchosen variant was not run on test. Learning experiment, not an ocean forecasting model.
+
 ## Status
-Validation and test evaluation complete. The test period was evaluated once (commit `0aacc83`, tag `pre-test-freeze`, started 2026-11-02T06:30:47Z). **Post-test changes:** none to methods or parameters. After the test run only figure and documentation code was added (fig 2 / fig 3 layout, this README, the report). The LSTM test was then run once under its own pre-registered protocol (commit `dbf5ab3`, tag `pre-lstm-test`, started 2026-11-05T04:52:05Z); the baseline results were not changed. The B1 spatial-context models were then tested once under their own pre-registered protocol (commit `b89b208`, tag `pre-b1-test`, started 2026-11-08T15:33:51Z); neither the baseline nor the LSTM results were changed, and this README was updated once after that test. **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box is 0.262 °C, so "all anomaly-based methods" was wrong), added the validation-to-test ranking-change finding, the data-availability note, the references and the report header; no method, parameter or score changed.
+Validation and test evaluation complete. The test period was evaluated once (commit `0aacc83`, tag `pre-test-freeze`, started 2026-11-02T06:30:47Z). **Post-test changes:** none to methods or parameters. After the test run only figure and documentation code was added (fig 2 / fig 3 layout, this README, the report). The LSTM test was then run once under its own pre-registered protocol (commit `dbf5ab3`, tag `pre-lstm-test`, started 2026-11-05T04:52:05Z); the baseline results were not changed. The B1 spatial-context models were then tested once under their own pre-registered protocol (commit `b89b208`, tag `pre-b1-test`, started 2026-11-08T15:33:51Z); neither the baseline nor the LSTM results were changed, and this README was updated once after that test. The B2 whole-region models were then tested once under their own pre-registered protocol (commit `97e74f2`, tag `pre-b2-test`, started 2026-11-10T21:57:41Z); no earlier result was changed. **Post-test documentation-only changes:** corrected key finding 1 (damped persistence at 1 day in the Kuroshio box is 0.262 °C, so "all anomaly-based methods" was wrong), added the validation-to-test ranking-change finding, the data-availability note, the references and the report header; no method, parameter or score changed.
 
 ## Limitations
 - Two small regions, one product (OISST); results may not transfer elsewhere.
@@ -184,6 +206,7 @@ Validation and test evaluation complete. The test period was evaluated once (com
 - Ridge is fitted per grid point and ignores spatial structure.
 - Ridge alpha was chosen at the lower edge of the pre-fixed grid for several region/lead cases (validation curve flat there, `results/ridge_alphas.json`); the grid was not extended.
 - B1: only a 5×5 patch of two boxes, three seeds, one test run; the halo is inputs only. The point-Ridge and Ridge+doy alphas sit at the lower grid edge at 7 and 30 days (flat curve, not changed); validation numbers are slightly optimistic because alphas and early stopping used the validation years.
+- B2: ~12k training samples for the whole-region networks, three seeds, one test run; the U-Net/ConvLSTM-ED margins over Ridge-patch at 7 and 30 d are measured on six test years in two boxes only.
 - One fixed split (no cross-validation over time blocks); six test years are a short record.
 - I am still learning oceanography; interpretations here are descriptive, not physical explanations.
 
@@ -214,6 +237,10 @@ python -m sst.b1_manifest               # B1 provenance
 python -m sst.b1_eval                   # B1 validation report
 # commit, then: git tag pre-b1-test
 python -m sst.b1_test                   # B1 test period, ONCE (guarded)
+python -m sst.b2_train ...; python -m sst.b2_check; python -m sst.b2_manifest; python -m sst.b2_eval   # B2 (see scripts/b2_chain.sh, scripts/b2_chain_res.sh); validation only
+python -m sst.b2_eval_res; python -m sst.b2_test_choice   # plain vs residual (validation) -> results/b2_test_choice.json
+# commit, then: git tag pre-b2-test
+python -m sst.b2_test                   # B2 test period, ONCE (guarded); python -m sst.b2_test_report
 python -m sst.make_docs                 # README.md + report/report.md/.html from results/*.json
 python report/build_report_pdf.py   # report.pdf (embeds the figure, then soffice)
 python report/methods_example.py && python report/build_methods_note.py   # methods note (then soffice as above on report/methods_note.html)
