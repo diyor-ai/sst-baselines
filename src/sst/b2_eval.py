@@ -304,8 +304,8 @@ def maps_figure(res, maps_by_region, tag):
     models = list(next(iter(res["regions"].values()))["models"])
     regions = list(res["regions"])
     rows = [(r, m) for r in regions for m in models]
-    fig = plt.figure(figsize=(12, 3.1 * len(rows)))
-    gs = fig.add_gridspec(len(rows) + 1, 3, width_ratios=[1, 1, 1.4], height_ratios=[1] * len(rows) + [0.06], wspace=0.25, hspace=0.35)
+    fig = plt.figure(figsize=(12, 3.8 * len(rows)))
+    gs = fig.add_gridspec(len(rows) + 1, 3, width_ratios=[1, 1, 1.4], height_ratios=[1] * len(rows) + [0.06], wspace=0.25, hspace=0.7)
     axes = np.empty((len(rows), 3), dtype=object)
     for i in range(len(rows)):
         axes[i, 0], axes[i, 1], axes[i, 2] = fig.add_subplot(gs[i, 0]), fig.add_subplot(gs[i, 1]), fig.add_subplot(gs[i, 2])
