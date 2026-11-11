@@ -525,6 +525,17 @@ def readme(D, f):
     A(md_table(*b2_tables(D)) + "\n")
     for para in b2_facts(D):
         A(para + "\n")
+    for r in D.regions:   # the captions below describe a 4-model x 2-region x 3-seed layout; fail loudly if the data changed
+        assert set(D.b2v["regions"][r]["models"]) == {"unet", "resunet", "convlstm_ed", "resconvlstm_ed"}
+    A("![B2 validation maps](results/figures/figB2_maps_res.png)\n\n"
+      "*Figure B2 (maps; validation 2016–2019, not test). One row per region and model (Kuroshio then subtropical; U-Net C=32, U-Net residual C=32, ConvLSTM C=16, ConvLSTM residual C=16), "
+      "mean over seeds 0, 1, 2. Left and middle columns: per-grid-point RMSE skill vs Ridge-patch (1 − RMSE_model / RMSE_Ridge-patch) over the 40×40 evaluated points at 7 d and 30 d lead; "
+      "blue = lower RMSE than Ridge-patch, red = higher, white = equal, colour scale fixed at −0.3 to +0.3 (the colour-bar label is partly overprinted by the panels' axes). "
+      "The black lines mark the outer 4-point ring. Right column: the same skill averaged over rings of equal distance from the box edge (0 = outermost point), 7 d in blue and 30 d in red, with a zero line.*\n")
+    A("![B2 learning curves](results/figures/figB2_curves_res.png)\n\n"
+      "*Figure B2 (learning curves; training 1982–2015, validation 2016–2019). One panel per region (rows) and model variant (columns: U-Net C=32, U-Net residual C=32, ConvLSTM C=16, ConvLSTM residual C=16). "
+      "Blue = training loss, red = validation loss, both MSE on standardised data per epoch; line styles solid, dashed, dotted are seeds 0, 1, 2, and the dot marks the best-validation epoch of each seed "
+      "(the epoch whose checkpoint was kept). The panels have their own y-axes and different numbers of epochs because of early stopping.*\n")
     A("## Status")
     A(f"Validation and test evaluation complete. The test period was evaluated once (commit `{f['commit'][:7]}`, tag `pre-test-freeze`, "
       f"started {f['run_utc']}). **Post-test changes:** none to methods or parameters. After the test run only figure and documentation code "
