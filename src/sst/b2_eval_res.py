@@ -6,6 +6,7 @@ validation RMSE. NEW files: results/b2_val_res.json, b2_val_res_report.md, b2_va
 """
 import copy
 import json
+import sys
 
 import numpy as np
 
@@ -111,7 +112,19 @@ def report_res_md(res, sel, cfg):
     return "\n".join(L)
 
 
+def maps_only():
+    """Redraw figB2_maps_res.png from the SAVED results/b2_val_res.json and b2_val_maps_res.npz (nothing is recomputed or rewritten except the png)."""
+    from sst.b2_eval import maps_figure
+    res = json.loads((RESULTS / f"b2_val{TAG}.json").read_text())
+    z = np.load(RESULTS / f"b2_val_maps{TAG}.npz")
+    maps = {r: {k.split("__", 1)[1]: z[k] for k in z.files if k.split("__", 1)[0] == r} for r in res["regions"]}
+    maps_figure(res, maps, TAG)
+    print(f"wrote results/figures/figB2_maps{TAG}.png from saved results")
+
+
 def main():
+    if "--maps-only" in sys.argv:
+        return maps_only()
     cfg = load_config()
     b2 = load_b2()
     models = {"unet": [32], "resunet": [b2["residual"]["resunet"]["C"]], "convlstm_ed": [16], "resconvlstm_ed": [b2["residual"]["resconvlstm_ed"]["C"]]}

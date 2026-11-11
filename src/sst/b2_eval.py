@@ -293,15 +293,23 @@ def figures(res, maps_by_region, cfg, tag):
     fig.tight_layout()
     fig.savefig(RESULTS / "figures" / f"figB2_curves{tag}.png", dpi=150)
     plt.close(fig)
-    # skill maps
-    lats = {}
+    maps_figure(res, maps_by_region, tag)
+
+
+def maps_figure(res, maps_by_region, tag):
+    """Skill maps + skill-vs-edge-distance profiles. Colour bar is horizontal under the map columns (a vertical one between the columns had its label overprinted by the profile axes)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    models = list(next(iter(res["regions"].values()))["models"])
+    regions = list(res["regions"])
     rows = [(r, m) for r in regions for m in models]
     fig = plt.figure(figsize=(12, 3.1 * len(rows)))
-    gs = fig.add_gridspec(len(rows), 4, width_ratios=[1, 1, 0.05, 1.4], wspace=0.25, hspace=0.35)
+    gs = fig.add_gridspec(len(rows) + 1, 3, width_ratios=[1, 1, 1.4], height_ratios=[1] * len(rows) + [0.06], wspace=0.25, hspace=0.35)
     axes = np.empty((len(rows), 3), dtype=object)
     for i in range(len(rows)):
-        axes[i, 0], axes[i, 1], axes[i, 2] = fig.add_subplot(gs[i, 0]), fig.add_subplot(gs[i, 1]), fig.add_subplot(gs[i, 3])
-    cax = fig.add_subplot(gs[:, 2])
+        axes[i, 0], axes[i, 1], axes[i, 2] = fig.add_subplot(gs[i, 0]), fig.add_subplot(gs[i, 1]), fig.add_subplot(gs[i, 2])
+    cax = fig.add_subplot(gs[len(rows), 0:2])
     for i, (r, m) in enumerate(rows):
         C = chosen(res["regions"][r], m)
         mp = maps_by_region[r]
@@ -325,7 +333,7 @@ def figures(res, maps_by_region, cfg, tag):
         ax.set_title("skill vs distance to the box edge", fontsize=8)
         ax.legend(fontsize=7)
         ax.grid(alpha=.3)
-    fig.colorbar(im, cax=cax, label="per-point RMSE skill vs Ridge-patch (mean over seeds)")
+    fig.colorbar(im, cax=cax, orientation="horizontal", label="per-point RMSE skill vs Ridge-patch (mean over seeds)")
     fig.savefig(RESULTS / "figures" / f"figB2_maps{tag}.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 

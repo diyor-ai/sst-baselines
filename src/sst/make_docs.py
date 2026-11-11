@@ -530,7 +530,7 @@ def readme(D, f):
     A("![B2 validation maps](results/figures/figB2_maps_res.png)\n\n"
       "*Figure B2 (maps; validation 2016–2019, not test). One row per region and model (Kuroshio then subtropical; U-Net C=32, U-Net residual C=32, ConvLSTM C=16, ConvLSTM residual C=16), "
       "mean over seeds 0, 1, 2. Left and middle columns: per-grid-point RMSE skill vs Ridge-patch (1 − RMSE_model / RMSE_Ridge-patch) over the 40×40 evaluated points at 7 d and 30 d lead; "
-      "blue = lower RMSE than Ridge-patch, red = higher, white = equal, colour scale fixed at −0.3 to +0.3 (the colour-bar label is partly overprinted by the panels' axes). "
+      "blue = lower RMSE than Ridge-patch, red = higher, white = equal, colour scale fixed at −0.3 to +0.3 (colour bar at the bottom). "
       "The black lines mark the outer 4-point ring. Right column: the same skill averaged over rings of equal distance from the box edge (0 = outermost point), 7 d in blue and 30 d in red, with a zero line.*\n")
     A("![B2 learning curves](results/figures/figB2_curves_res.png)\n\n"
       "*Figure B2 (learning curves; training 1982–2015, validation 2016–2019). One panel per region (rows) and model variant (columns: U-Net C=32, U-Net residual C=32, ConvLSTM C=16, ConvLSTM residual C=16). "
